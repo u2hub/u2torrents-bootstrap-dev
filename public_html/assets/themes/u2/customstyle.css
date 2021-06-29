@@ -1,0 +1,345 @@
+/* u2 */
+html, body {
+	height: 100%;
+    font-size: 1.0 rem;   /* this option adjusts the general font size */
+	background-color: #dddddd;
+	color: #322e2d;
+	line-height: 1.4;
+}
+.list-group-item {
+    position: relative;
+    display: block;
+    padding: 0rem 0.25rem;
+    margin-bottom: -1px;
+    background-color: #ede8e8
+    border: 1px solid #fff;
+}
+
+.col-sm-2, .col-sm-8 {
+    padding-right: 5px;
+    padding-left: 5px;
+}
+
+@media (min-width: 768px) {
+	.col-sm-8 {
+		flex: 0 0 72.667%; /* Center Column width. Note: linked to side (.col-sm-2) width and linked to @media setting */
+		max-width: 72.66667%;
+	}
+
+	.col-sm-2 {
+		flex: 0 0 13.667%;	/* Side Column width. Note: linked to center (.col-sm-8) width and linked to @media setting */
+		max-width: 13.66667%;
+	}
+}
+
+.container-fluid {
+	min-height: 78.30%;
+    padding-right: 16px;
+    padding-left: 16px;
+	background-color: #dddddd !important;
+	background-image: url('../../images/background.jpg');
+	background-blend-mode: overlay;   	/* this option adjusts the background color blending with the background picture */
+	background-repeat: no-repeat;
+	background-attachment: fixed;
+	background-size: cover;
+}
+/* Toggle */
+.custom-toggler .navbar-toggler-icon {
+	background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(255,102,203, 0.5)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 8h24M4 16h24M4 24h24'/%3E%3C/svg%3E");
+}
+.custom-toggler.navbar-toggler {
+	border-color: rgb(255,102,203);
+} 
+.navbar-toggler {
+	  border: 1px solid white !IMPORTANT;
+}
+  
+  
+/* ShoutBox */
+.shoutbox_body {
+	color: yellow;
+	float: middle;
+	background-color: transparent;
+}
+.shoutbox_contain {
+	border: 0;
+	height: 250px;
+	width: 100%;
+	overflow: auto;
+}
+.shoutbox_history {
+	border: 0;
+	height: 100%;
+	width: 100%;
+}
+.shoutbox_messageboxback {
+	background-color: transparent;
+}
+.shoutbox_noalt {
+	background-color: #eeeeee;
+	font-size: 16px;
+	color: #322e2d;
+	border-right: 2px solid #fff;
+	border-left: 2px solid #fff;
+	-webkit-border-radius: 12px 4px;
+    -moz-border-radius: 12px 4px;
+    border-radius: 12px 4px;
+	font-variant: small-caps;
+	line-height: 16px;
+	margin: 1px;
+}
+.shoutbox_alt {
+	background-color: #dddddd;
+	font-size: 16px;
+	color: #322e2d;
+	border-left: 2px solid #fff;
+	border-right: 2px solid #fff;
+    -webkit-border-radius: 12px 4px;
+    -moz-border-radius: 12px 4px;
+    border-radius: 12px 4px;
+	font-variant: small-caps;
+	line-height: 16px;
+	margin: 1px;
+}
+.shoutbox_msgbox {
+	width: 100%;
+	font-size: 16px;
+	background-color: #FFF;
+	border: 1px solid #777;
+}
+.shoutbox_shoutbtn {
+	font-size: 12px;
+	background-color: AliceBlue;
+	border: 1px solid black;
+	font-weight: bold;
+}
+.shoutbox_error {
+	color: red;
+	font-size: 13px;
+}
+
+
+/* heders */
+.f-cat {
+	background-color: #DE9000;
+	background-image: -webkit-linear-gradient(top, #ff9900, #DE9000);
+	background-image: linear-gradient(to bottom, #ff9900, #DE9000);
+	background-repeat: repeat-x;
+	background-position: top;
+	margin: 0px;
+	padding: 0px;
+	height: 28px;
+}
+  
+  
+/* Boders */
+.border-success {
+	border-radius: 9px 9px 9px 9px !IMPORTANT;
+-moz-border-radius: 9px 9px 9px 9px !IMPORTANT;
+-webkit-border-radius: 9px 9px 9px 9px !IMPORTANT;
+border: 5px solid #089c14 !IMPORTANT;
+}
+.border-danger {
+	border-radius: 9px 9px 9px 9px !IMPORTANT;
+-moz-border-radius: 9px 9px 9px 9px !IMPORTANT;
+-webkit-border-radius: 9px 9px 9px 9px !IMPORTANT;
+border: 5px solid #ff0000 !IMPORTANT;
+}
+.border-warning {
+	border-radius: 9px 9px 9px 9px !IMPORTANT;
+-moz-border-radius: 9px 9px 9px 9px !IMPORTANT;
+-webkit-border-radius: 9px 9px 9px 9px !IMPORTANT;
+border: 5px solid #ff9900 !IMPORTANT;
+}
+
+.border-primary {
+	border-radius: 9px 9px 9px 9px !IMPORTANT;
+-moz-border-radius: 9px 9px 9px 9px !IMPORTANT;
+-webkit-border-radius: 9px 9px 9px 9px !IMPORTANT;
+border: 5px solid #3895D3 !IMPORTANT;
+}
+  
+
+/* Tables */
+.newtd {
+    color: #fff;
+    background-image: -webkit-linear-gradient(top, #322e2d, #342f2c);
+    background-image: linear-gradient(to bottom, #322e2d, #342f2c);
+    background-repeat: repeat-x;
+}
+
+/* -- Tables --*/
+.table thead th {
+        color: #fff;
+        background-color: #322e2d;
+        background-image: -webkit-linear-gradient(top, #322e2d, #342f2c);
+        background-image: linear-gradient(to bottom, #322e2d, #342f2c);
+        background-repeat: repeat-x;
+}
+.table td, .table th {
+    padding: 0.25rem;
+    vertical-align: top;
+    border-top: 1px solid #dee2e6;
+	color: #000;
+}
+.ttheader {
+	color: #fff;
+	background-color: #ff9900;
+	background-image: -webkit-linear-gradient(top, #a9111f, #ff9900);
+	background-image: linear-gradient(to bottom, #a9111f, #ff9900);
+	background-repeat: repeat-x;
+}
+.tbody td {
+    background-color: #EEEEEE;
+}
+  
+/* Navbars */
+.navbar-nav .nav-link {
+    color: #000;
+    font-size: 18px;
+}
+.navbar {
+    background-image: -webkit-linear-gradient(top, #a2a1a6, #dddddd);
+    background-image: linear-gradient(to bottom, #a2a1a6, #dddddd);
+    background-repeat: repeat-x;
+    padding: 0.1rem 0.1rem;
+}
+@media (min-width: 768px) {
+	.navbar-brand {
+		padding-top: 0rem;
+		padding-bottom: 0rem;	
+}
+}
+.navbarone {
+    background-image: -webkit-linear-gradient(top, #332e2e, #a2a1a6);
+    background-image: linear-gradient(to bottom, #332e2e, #a2a1a6);
+    background-repeat: repeat-x;
+	color: #fff;
+}
+@media (min-width: 1850px) {  /* this option adjusts how far the search block in the header moves right. It will only be visible on the right on pc screens. Phones it should be attached to the menu by default. */
+	.input-group-sm {
+		padding-left: 525px;
+	}
+}
+
+
+/* Alerts */
+  .alert-info {
+    color: #070b0c !IMPORTANT;
+    background-color: #f6f863 !IMPORTANT;
+    border-color: #f6f863 !IMPORTANT;
+}
+
+
+/* Button Yellow */
+.btn-warning {
+    color: #fff  !IMPORTANT;
+	background-image: -webkit-linear-gradient(top, #072F5F, #3895D3) !IMPORTANT;
+	background-image: linear-gradient(to bottom, #072F5F, #3895D3) !IMPORTANT;
+}
+
+
+ /* Cards */ 
+.card {
+    background-color: transparent; /* Needed to make the padding-bottom work */
+    border: 0px; /* Needed to make the padding-bottom work */
+    padding-bottom: 10px;  /* adjust this value to change the vertical spacing for left and right column, and also center column */
+    opacity: 1;  /* this option adjusts transparancy of the blocks, thus the background picture will become more or less visible */
+}
+.card-header {
+    color: #fff;
+    background-image: -webkit-linear-gradient(top, #322e2d, #342f2c);
+    background-image: linear-gradient(to bottom, #322e2d, #342f2c);
+    background-repeat: repeat-x;
+    border-bottom: 0px;
+	padding: 0.5rem;
+}
+.card-header1 {
+	color: #fff;
+	background-image: -webkit-linear-gradient(top, #3895D3, #072F5F);
+	background-image: linear-gradient(to bottom, #3895D3, #072F5F);
+	background-repeat: repeat-x;
+	border-bottom: 0px;
+	height: 35px;
+}
+.card-body {
+    border: 1px solid;
+	border-top-width: 1px;
+	border-right-width: 1px;
+	border-bottom-width: 1px;
+	border-left-width: 1px;
+	border-image-slice: 100%;
+	border-image-source: none;
+    border-image-slice: 1;
+    border-width: 1px;
+    background-color: #eeeeee;
+    border-image-source: linear-gradient(to bottom, #322e2d, #342f2c);
+    padding: 0.5rem;
+	opacity: 0.93;  /* this option adjusts transparancy of the blocks, thus the background picture will become more or less visible */
+}
+.card-body-login {    
+	border: 1px solid;
+	border-top-width: 1px;
+	border-right-width: 1px;
+	border-bottom-width: 1px;
+	border-left-width: 1px;
+	border-image-slice: 100%;
+	border-image-source: none;
+    border-image-slice: 1;
+    border-width: 1px;
+    background-color: #transparent;
+    border-image-source: linear-gradient(to bottom, #322e2d, #342f2c);
+    padding: 0.5rem;
+	padding-top: 1rem;
+	opacity: 0.96;  /* this option adjusts transparancy of the blocks, thus the background picture will become more or less visible */
+}
+.card-footer {
+	width: 100%;
+	padding: 0.75rem 1.25rem;
+	background-image: -webkit-linear-gradient(top, #dddddd, #a2a1a6);
+    background-image: linear-gradient(to bottom, #dddddd, #a2a1a6);
+    background-repeat: repeat-x;
+	border-top: 7px solid rgba(0, 0, 0, 0.125);
+	font-size: 0.7rem;
+}
+
+
+/* Links */
+a {
+    color: #000 !important;
+}
+
+
+/* sceditor */
+.sceditor-container iframe, .sceditor-container textarea {
+    color: #000 !important;
+    background: #fff !important;
+    width: 100% !important;
+}
+
+div.sceditor-group {
+    display: inline-block !important;
+    margin: 0px 0px 0px 0 !important;
+    padding: 1px !important;
+    border-radius: 0px !important;
+    background-image: linear-gradient(to bottom, #322e2d, #342f2c) !important;
+    border-bottom: 0px solid #000 !important;
+    width: 100% !important;
+}
+
+.sceditor-container textarea {
+    margin: 0px 0px !important;
+	width: 100% !important;
+}
+
+.sceditor-container.sourceMode.ltr {
+	width: 100% !important;
+}
+
+div.sceditor-toolbar {
+    padding: 0px 0px 0px;
+}
+
+div.sceditor-dropdown {
+    background: padding-box #242424;
+}

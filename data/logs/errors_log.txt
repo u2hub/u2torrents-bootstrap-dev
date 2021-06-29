@@ -1,0 +1,5 @@
+[24-May-2021 11:18:17 Singapore] PHP Fatal error:  Maximum execution time of 240 seconds exceeded in /volume1/web/u2sites.xyz/bootstrapdev.u2site.xyz/app/controllers/Import.php on line 19
+[24-May-2021 11:18:17 Singapore] PHP Stack trace:
+[24-May-2021 11:18:17 Singapore] PHP   1. {main}() /volume1/web/u2sites.xyz/bootstrapdev.u2site.xyz/public_html/index.php:0
+[24-May-2021 11:18:17 Singapore] PHP   2. Core->__construct() /volume1/web/u2sites.xyz/bootstrapdev.u2site.xyz/public_html/index.php:4
+[24-May-2021 11:18:17 Singapore] PHP   3. Import->index() /volume1/web/u2sites.xyz/bootstrapdev.u2site.xyz/app/libraries/Core.php:51
