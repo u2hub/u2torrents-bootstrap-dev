@@ -1,21 +1,19 @@
 <?php
-class Faq extends Controller
+class Faq
 {
     public function __construct()
     {
-        Auth::user();
-        $this->faqModel = $this->model('Faqs');
-        $this->valid = new Validation();
+        $this->session = Auth::user(0, 1);
     }
 
     public function index()
     {
-        $faq_categ = $this->faqModel->bigone();
+        $faq_categ = Faqs::bigone();
         $data = [
             'title' => 'FAQ',
             'faq_categ' => $faq_categ,
             ];
-        $this->view('faq/index', $data, 'user');
+        View::render('faq/index', $data, 'user');
     }
 
 }

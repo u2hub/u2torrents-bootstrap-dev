@@ -14,26 +14,24 @@ $GLOBALS['tstart'] = array_sum(explode(" ", microtime()));
     <title><?php echo $title; ?></title>
   
     <!-- Bootstrap & core CSS -->
-    <link href="<?php echo URLROOT; ?>/assets/themes/darktheme/bootstrap.min.css" rel="stylesheet">
+    <link href="<?php echo URLROOT; ?>/assets/themes/<?php echo ($_SESSION['stylesheet'] ?: DEFAULTTHEME) ?>/bootstrap.min.css" rel="stylesheet">
     <link href="<?php echo URLROOT; ?>/assets/vendor/font-awesome/css/font-awesome.css" rel="stylesheet">
     <!-- TT Custom CSS, any edits must go here-->
-    <link href="<?php echo URLROOT; ?>/assets/themes/darktheme/customstyle.css" rel="stylesheet">
+    <link href="<?php echo URLROOT; ?>/assets/themes/<?php echo ($_SESSION['stylesheet'] ?: DEFAULTTHEME) ?>/customstyle.css" rel="stylesheet">
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/monokai-sublime.min.css">
   </head>
 <body>
-<?php require APPROOT."/views/admin/navbar.php";?>
-  <!-- START MAIN COLUMN -->
-  <div class="container-fluid">
-  <div class="row content">
-  <!-- START LEFT COLUMN -->
-  <?php if (LEFTNAV) {?>
-  <div class="col-sm-2 d-none d-sm-block sidenav">
-  <?php include APPROOT.'/views/admin/left.php';?>
-  </div>
-  <?php }?>
-  <!-- END LEFT COLUMN -->
-  <!-- START MIDDLE COLUMN -->
-  <?php if (MIDDLENAV) {?>
-  <div class="col-sm-8">
-  <?php   //Block::middle();?>
-  <?php }?>
+
+<?php require APPROOT . '/views/admin/navbar.php'; ?><br>
+
+<div class="container-fluid">
+<div class="row">
+  
+<?php
+if (LEFTNAV) { ?>
+<div class="ttsidebar">
+  <?php require APPROOT . '/views/admin/left.php'; ?>
+</div> <?php
+} ?>
+
+<div class="col">

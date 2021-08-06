@@ -1,14 +1,10 @@
 <?php
-class Adminforum extends Controller
+class Adminforum
 {
 
     public function __construct()
     {
-        Auth::user();
-        Auth::isStaff();
-        // $this->userModel = $this->model('User');
-        $this->logsModel = $this->model('Logs');
-        $this->valid = new Validation();
+        $this->session = Auth::user(_MODERATOR, 2);
     }
 
     public function index()
@@ -18,7 +14,7 @@ class Adminforum extends Controller
             'title' => Lang::T("FORUM_MANAGEMENT"),
             'groupsres' => $groupsres,
         ];
-        $this->view('forum/admin/index', $data, 'admin');
+        View::render('forum/admin/index', $data, 'admin');
     }
 
     public function addcat()
@@ -58,7 +54,7 @@ class Adminforum extends Controller
             'catid' => $v['id'],
             'name' => $v['name'],
         ];
-        $this->view('forum/admin/deletecat', $data, 'admin');
+        View::render('forum/admin/deletecat', $data, 'admin');
     }
 
     public function deleteforumcat()
@@ -90,18 +86,16 @@ class Adminforum extends Controller
             'sort' => $r['sort'],
             'name' => $r['name'],
         ];
-        $this->view('forum/admin/editcat', $data, 'admin');
+        View::render('forum/admin/editcat', $data, 'admin');
     }
 
     public function saveeditcat()
     {
         $id = (int) $_POST["id"];
         $changed_sortcat = (int) $_POST["changed_sortcat"];
-        DB::run("UPDATE forumcats SET sort = '$changed_sortcat', name = " . sqlesc($_POST["changed_forumcat"]) . " WHERE id='$id'");
+        DB::run("UPDATE forumcats SET sort = ?, name = ? WHERE id=?", [$changed_sortcat, $_POST["changed_forumcat"], $id]);
         Redirect::autolink(URLROOT . "/adminforum", "<center><b>" . Lang::T("CP_UPDATE_COMPLETED") . "</b></center>");
     }
-
-    /////////////// FORUM BITS /////////////////////////
 
     public function addforum()
     {
@@ -150,7 +144,7 @@ class Adminforum extends Controller
             'catid' => $v['sort'],
             'name' => $v['name'],
         ];
-        $this->view('forum/admin/deleteforum', $data, 'admin');
+        View::render('forum/admin/deleteforum', $data, 'admin');
     }
 
     public function deleteforumok()
@@ -180,7 +174,7 @@ class Adminforum extends Controller
             'guest_read' => $r['guest_read'],
             'query' => $query,
         ];
-        $this->view('forum/admin/editforum', $data, 'admin');
+        View::render('forum/admin/editforum', $data, 'admin');
     }
 
     public function saveeditforum()

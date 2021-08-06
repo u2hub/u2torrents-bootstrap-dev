@@ -1,7 +1,7 @@
 <nav class="navbar navbar-expand-lg">
   <a class="navbar-brand" href="<?php echo URLROOT; ?>"><font color='#fff'><b><?php echo SITENAME; ?></b><br><small><?php echo _SITEDESC; ?></small></font></a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
+    <i class="fa fa-bars" style="color:#fff; font-size:28px;"></i>
   </button>
   
   <div class="collapse navbar-collapse" id="navbarsExampleDefault">
@@ -17,9 +17,9 @@
       $arr = DB::run("SELECT * FROM messages WHERE receiver=" . $_SESSION["id"] . " and unread='yes' AND location IN ('in','both')")->fetchAll();
       $unreadmail = count($arr);
     if ($unreadmail !== 0) {
-      print("<a class='nav-link' href='" . URLROOT . "/messages/inbox'><b><font color='#fff'>$unreadmail</font> " . Lang::N("NEWPM", $unreadmail) . "</b></a>");
+      print("<a class='nav-link' href='" . URLROOT . "/messages?type=inbox'><b><font color='#fff'>$unreadmail</font> " . Lang::N("NEWPM", $unreadmail) . "</b></a>");
     } else {
-      print("<a class='nav-link' href='" . URLROOT . "/messages'>" . Lang::T("YOUR_MESSAGES") . "</a>");
+      print("<a class='nav-link' href='" . URLROOT . "/messages/overview'>" . Lang::T("YOUR_MESSAGES") . "</a>");
     }
     ?>
       </li>
@@ -30,7 +30,7 @@
         </a>
         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
 		    <a class="dropdown-item" href="<?php echo URLROOT ?>/profile?id=<?php echo $_SESSION["id"]; ?>"><?php echo Lang::T("PROFILE"); ?></a>
-		  	<a class="dropdown-item" href="<?php echo URLROOT ?>/messages/inbox"><?php echo Lang::T("YOUR_MESSAGES"); ?></a>
+		  	<a class="dropdown-item" href="<?php echo URLROOT ?>/messages?type=inbox"><?php echo Lang::T("YOUR_MESSAGES"); ?></a>
         <a class="dropdown-item" href="<?php echo URLROOT ?>/peers/seeding?id=<?php echo $_SESSION['id']; ?>"><?php echo Lang::T("YOUR_TORRENTS"); ?></a>
         <a class="dropdown-item" href="<?php echo URLROOT ?>/friends?id=<?php echo $_SESSION['id']; ?>"><?php echo Lang::T("FRIENDS"); ?></a>
         <a class="dropdown-item" href="<?php echo URLROOT ?>/bonus"><?php echo Lang::T("SEEDING_BONUS"); ?></a> <!-- Check the link! -->
@@ -77,6 +77,12 @@
       </li>
 
     </ul>
+    <?php endif;?>
+
+    <?php if (!$_SESSION['id']): ?>
+    <ul class="navbar-nav mr-auto">
+    <a href="<?php echo URLROOT ?>/forums"><b><?php echo Lang::T("FORUMS"); ?></b></a>&nbsp;&nbsp;
+	  </ul>
     <?php endif;?>
 
     <ul class="navbar-nav navbar-right d-none d-sm-block">

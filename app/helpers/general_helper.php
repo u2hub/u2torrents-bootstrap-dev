@@ -1,30 +1,10 @@
 <?php
 // get image embeded image
-///////////////////////////////////////////////////////////////////
-function data_uri($file, $mime) 
-{  
-    $contents = file_get_contents($file);
-    $base64   = base64_encode($contents); 
-    return ('data:' . $mime . ';base64,' . $base64);
-}
-
-// Function To Display Error Messages
-function show_error_msg($title, $message, $wrapper = "1")
+function data_uri($file, $mime)
 {
-    if ($wrapper) {
-        ob_start();
-        ob_clean();
-        Style::header($title);
-    }
-
-    Style::begin("<font class='error'>" . htmlspecialchars($title) . "</font>");
-    echo '<div class="alert alert-info">'.$message.'</div>';
-    Style::end();
-
-    if ($wrapper) {
-        Style::footer();
-        die();
-    }
+    $contents = file_get_contents($file);
+    $base64 = base64_encode($contents);
+    return ('data:' . $mime . ';base64,' . $base64);
 }
 
 // Function To Count A Data Established In A Data Table
@@ -54,7 +34,6 @@ function mksize($s, $precision = 2)
         {
             return number_format($s / pow(1024, $x), $precision) . " " . $suf[$x];
         }
-
     }
 }
 
@@ -90,57 +69,55 @@ function strtobytes($str)
         case "kb": // KiloByte
             return $num * 1024;
         case "b": // Byte
-        default:
+            default:
             return $num;
     }
 }
 
 function usermenu($id)
 {
-     ?>
-    <a href='<?php echo URLROOT; ?>/profile?id=<?php echo $id; ?>'><button type="button" class="btn btn-sm btn-warning">Profile</button></a>
+    ?>
+    <a href='<?php echo URLROOT; ?>/profile?id=<?php echo $id; ?>'><button type="button" class="btn btn-sm ttbtn">Profile</button></a>
     <?php if ($_SESSION["id"] == $id or $_SESSION["class"] > _UPLOADER) {?>
-    <a href='<?php echo URLROOT; ?>/profile/edit?id=<?php echo $id; ?>'><button type="button" class="btn btn-sm btn-warning">Edit</button></a>&nbsp;
+    <a href='<?php echo URLROOT; ?>/profile/edit?id=<?php echo $id; ?>'><button type="button" class="btn btn-sm ttbtn">Edit</button></a>&nbsp;
     <?php }?>
     <?php if ($_SESSION["id"] == $id) {?>
-    <a href='<?php echo URLROOT; ?>/account/changepw?id=<?php echo $id; ?>'><button type="button" class="btn btn-sm btn-warning">Password</button></a>
-    <a href='<?php echo URLROOT; ?>/account/email?id=<?php echo $id; ?>'><button type="button" class="btn btn-sm btn-warning">Email</button></a>
-    <a href='<?php echo URLROOT; ?>/messages'><button type="button" class="btn btn-sm btn-warning">Messages</button></a>
-    <a href='<?php echo URLROOT; ?>/bonus?id=<?php echo $id; ?>'><button type="button" class="btn btn-sm btn-warning">Seed Bonus</button></a>
+    <a href='<?php echo URLROOT; ?>/account/changepw?id=<?php echo $id; ?>'><button type="button" class="btn btn-sm ttbtn">Password</button></a>
+    <a href='<?php echo URLROOT; ?>/account/email?id=<?php echo $id; ?>'><button type="button" class="btn btn-sm ttbtn">Email</button></a>
+    <a href='<?php echo URLROOT; ?>/messages/overview'><button type="button" class="btn btn-sm ttbtn">Messages</button></a>
+    <a href='<?php echo URLROOT; ?>/bonus'><button type="button" class="btn btn-sm ttbtn">Seed Bonus</button></a>
     <?php }?>
     <?php if ($_SESSION["view_users"]) {?>
-    <a href='<?php echo URLROOT; ?>/friends?id=<?php echo $id; ?>'><button type="button" class="btn btn-sm btn-warning">Friends</button></a>
+    <a href='<?php echo URLROOT; ?>/friends?id=<?php echo $id; ?>'><button type="button" class="btn btn-sm ttbtn">Friends</button></a>
     <?php }?>
     <?php if ($_SESSION["view_torrents"]) {?>
-    <a href='<?php echo URLROOT; ?>/peers/seeding?id=<?php echo $id; ?>'><button type="button" class="btn btn-sm btn-warning">Seeding</button></a>
-    <a href='<?php echo URLROOT; ?>/peers/uploaded?id=<?php echo $id; ?>'><button type="button" class="btn btn-sm btn-warning">Uploaded</button></a>
+    <a href='<?php echo URLROOT; ?>/peers/seeding?id=<?php echo $id; ?>'><button type="button" class="btn btn-sm ttbtn">Seeding</button></a>
+    <a href='<?php echo URLROOT; ?>/peers/uploaded?id=<?php echo $id; ?>'><button type="button" class="btn btn-sm ttbtn">Uploaded</button></a>
     <?php }?>
     <?php if ($_SESSION["class"] > _UPLOADER) {?>
-    <a href='<?php echo URLROOT; ?>/warning?id=<?php echo $id; ?>'><button type="button" class="btn btn-sm btn-warning">Warn</button></a>
+    <a href='<?php echo URLROOT; ?>/warning?id=<?php echo $id; ?>'><button type="button" class="btn btn-sm ttbtn">Warn</button></a>
     <a href='<?php echo URLROOT; ?>/profile/admin?id=<?php echo $id; ?>'><button type="button" class="btn btn-sm btn-success">Admin</button></a>
-	<?php } ?>
+	<?php }?>
     <br><br><?php
-} //end func
+}
 
 function torrentmenu($id, $external = 'no')
 {
-     ?>
-<a href='<?php echo URLROOT; ?>/torrent?id=<?php echo $id; ?>'><button type="button" class="btn btn-sm btn-warning">Back</button></a>
-<?php if ($_SESSION["id"] == $id or $_SESSION["edit_torrents"] == 'yes') {?>
-<a href='<?php echo URLROOT; ?>/torrent/edit?id=<?php echo $id; ?>'><button type="button" class="btn btn-sm btn-warning">Edit</button></a>
-<?php }?>
-<a href='<?php echo URLROOT; ?>/comments?type=torrent&amp;id=<?php echo $id; ?>'><button type="button" class="btn btn-sm btn-warning">Comments</button></a>
-<a href='<?php echo URLROOT; ?>/torrent/torrentfilelist?id=<?php echo $id; ?>'><button type="button" class="btn btn-sm btn-warning">Files</button></a>
-
-<?php if ($external != 'yes') {?>
-     <a href='<?php echo URLROOT; ?>/peers/peerlist?id=<?php echo $id; ?>'><button type="button" class="btn btn-sm btn-warning">Peers</button></a>
-<?php }?>
-
-<?php if ($external == 'yes') {?>
-     <a href='<?php echo URLROOT; ?>/torrent/torrenttrackerlist?id=<?php echo $id; ?>'><button type="button" class="btn btn-sm btn-warning">Trackers</button></a>
-<?php } ?>
-<br><br>
-<?php 
+    ?>
+    <a href='<?php echo URLROOT; ?>/torrent?id=<?php echo $id; ?>'><button type="button" class="btn btn-sm ttbtn">Back</button></a>
+    <?php if ($_SESSION["id"] == $id or $_SESSION["edit_torrents"] == 'yes') {?>
+    <a href='<?php echo URLROOT; ?>/torrent/edit?id=<?php echo $id; ?>'><button type="button" class="btn btn-sm ttbtn">Edit</button></a>
+    <?php }?>
+    <a href='<?php echo URLROOT; ?>/comments?type=torrent&amp;id=<?php echo $id; ?>'><button type="button" class="btn btn-sm ttbtn">Comments</button></a>
+    <a href='<?php echo URLROOT; ?>/torrent/torrentfilelist?id=<?php echo $id; ?>'><button type="button" class="btn btn-sm ttbtn">Files</button></a>
+    <?php if ($external != 'yes') {?>
+    <a href='<?php echo URLROOT; ?>/peers/peerlist?id=<?php echo $id; ?>'><button type="button" class="btn btn-sm ttbtn">Peers</button></a>
+    <?php }
+    if ($external == 'yes') {?>
+     <a href='<?php echo URLROOT; ?>/torrent/torrenttrackerlist?id=<?php echo $id; ?>'><button type="button" class="btn btn-sm ttbtn">Trackers</button></a>
+    <?php }?>
+    <br><br>
+    <?php
 }
 
 function uploadimage($x, $imgname, $tid)
@@ -155,19 +132,19 @@ function uploadimage($x, $imgname, $tid)
         $y = $x + 1;
         $im = getimagesize($_FILES["image$x"]["tmp_name"]);
         if (!$im[2]) {
-            show_error_msg(Lang::T("ERROR"), "Invalid Image $y.", 1);
+            Redirect::autolink(URLROOT . $_SERVER["HTTP_REFERER"], "Invalid Image $y.");
         }
         if (!array_key_exists($im['mime'], $allowed_types)) {
-            show_error_msg(Lang::T("ERROR"), Lang::T("INVALID_FILETYPE_IMAGE"), 1);
+            Redirect::autolink(URLROOT . $_SERVER["HTTP_REFERER"], Lang::T("INVALID_FILETYPE_IMAGE"));
         }
         if ($_FILES["image$x"]["size"] > IMAGEMAXFILESIZE) {
-            show_error_msg(Lang::T("ERROR"), sprintf(Lang::T("INVAILD_FILE_SIZE_IMAGE"), $y), 1);
+            Redirect::autolink(URLROOT . $_SERVER["HTTP_REFERER"], sprintf(Lang::T("INVAILD_FILE_SIZE_IMAGE"), $y));
         }
         $uploaddir = "$imagesdir/";
         $ifilename = $tid . $x . $allowed_types[$im['mime']];
         $copy = copy($_FILES["image$x"]["tmp_name"], $uploaddir . $ifilename);
         if (!$copy) {
-            show_error_msg(Lang::T("ERROR"), sprintf(Lang::T("ERROR_UPLOADING_IMAGE"), $y), 1);
+            Redirect::autolink(URLROOT . $_SERVER["HTTP_REFERER"], sprintf(Lang::T("ERROR_UPLOADING_IMAGE"), $y));
         }
         return $ifilename;
     }

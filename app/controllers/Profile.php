@@ -1,48 +1,39 @@
 <?php
-class Profile extends Controller
+class Profile
 {
     public function __construct()
     {
-        Auth::user();
-        $this->userModel = $this->model('User');
-        $this->valid = new Validation();
-        $this->log = $this->model('Logs');
+        $this->session = Auth::user(0, 2);
     }
 
     public function index()
     {
         $id = (int) Input::get("id");
-        if (!$this->valid->validId($id)) {
-            Session::flash('info', "Bad ID.", URLROOT."/home");
+        if (!Validate::Id($id)) {
+            Redirect::autolink(URLROOT, Lang::T("INVALID_USER_ID"));
         }
         // can view own but not others
         if ($_SESSION["view_users"] == "no" && $_SESSION["id"] != $id) {
-            Session::flash('info', Lang::T("NO_USER_VIEW"), URLROOT."/home");
+            Redirect::autolink(URLROOT, Lang::T("NO_USER_VIEW"));
         }
-        $user = User::getUserById($id);
+        $user = Users::getUserById($id);
         if (!$user) {
-            Session::flash('info', Lang::T("NO_USER_WITH_ID") . " $id.", URLROOT."/home");
+            Redirect::autolink(URLROOT, Lang::T("NO_USER_WITH_ID") . " $id.");
         }
         // user not ready to be seen yet
         if (($user["enabled"] == "no" || ($user["status"] == "pending")) && $_SESSION["edit_users"] == "no") {
-            Session::flash('info', Lang::T("NO_ACCESS_ACCOUNT_DISABLED"), URLROOT."/home");
+            Redirect::autolink(URLROOT, Lang::T("NO_ACCESS_ACCOUNT_DISABLED"));
         }
         // Start Blocked Users
         $blocked = DB::run("SELECT id FROM friends WHERE userid=$user[id] AND friend='enemy' AND friendid=$_SESSION[id]");
         $show = $blocked->rowCount();
         if ($show != 0 && $_SESSION["control_panel"] != "yes") {
-            Session::flash('info', "You're blocked by this member and you can not see his profile!", URLROOT."/home");
+            Redirect::autolink(URLROOT, "You're blocked by this member and you can not see his profile!");
         }
-        // $country
-        $res = DB::run("SELECT name FROM countries WHERE id=? LIMIT 1", [$user['country']]);
-        if ($res->rowCount() == 1) {
-            $arr = $res->fetch();
-            $country = "$arr[name]";
-        }
-        if (!$country) {
-            $country = "<b>Unknown</b>";
-        }
-        // $ratio
+        // country
+        $country = Countries::getCountryName($user['country']);
+
+        // ratio
         if ($user["downloaded"] > 0) {
             $ratio = $user["uploaded"] / $user["downloaded"];
         } else {
@@ -63,13 +54,12 @@ class Profile extends Controller
 
         $usersignature = stripslashes($user["signature"]); // todo
 
-        $r = DB::run("SELECT id FROM friends WHERE userid=? AND friend=? AND friendid=?", [$_SESSION['id'], 'friend', $id]);
-        $friend = $r->rowCount();
-        $r = DB::run("SELECT id FROM friends WHERE userid=? AND friend=? AND friendid=?", [$_SESSION['id'], 'enemy', $id]);
-        $block = $r->rowCount();
+        $arr = Friend::countFriendAndEnemy($_SESSION['id'], $id);
+        $friend = $arr['friend'];
+        $block = $arr['enemy'];
 
         $cardheader = sprintf(Lang::T("USER_DETAILS_FOR"), Users::coloredname($user["username"]));
-        $user1 = $this->userModel->getAll($id);
+        $user1 = Users::getAll($id);
         $data = [
             'title' => $cardheader,
             'id' => $id,
@@ -85,64 +75,31 @@ class Profile extends Controller
             'usersignature' => $usersignature,
             'selectuser' => $user1,
         ];
-        $this->view('user/profile', $data, 'user');
+        View::render('user/profile', $data, 'user');
     }
 
     public function edit()
     {
         global $tzs;
-        $id = (int) $_GET["id"];
-        // Clear error
-        $stylesheets = '';
-        $tz = '';
-        if ($_SESSION['class'] < 5 && $id != $_SESSION['id']) {
-            Session::flash('info', Lang::T("You dont have permission"), URLROOT."/home");
+        $id = (int) Input::get("id");
+
+        if ($_SESSION['class'] < _MODERATOR && $id != $_SESSION['id']) {
+            Redirect::autolink(URLROOT, Lang::T("You dont have permission"));
         }
-        $user = User::getUserById($id);
+        $user = Users::getUserById($id);
+
         // Stylesheet
-        $ss_r = DB::run("SELECT * from stylesheets");
-        $ss_sa = array();
-        while ($ss_a = $ss_r->fetch(PDO::FETCH_LAZY)) {
-            $ss_id = $ss_a["uri"];
-            $ss_name = $ss_a["name"];
-            $ss_sa[$ss_name] = $ss_id;
-        }
-        ksort($ss_sa);
-        reset($ss_sa);
-        while (list($ss_name, $ss_id) = thisEach($ss_sa)) {
-            if ($ss_id == $user["stylesheet"]) {
-                $ss = " selected='selected'";
-            } else {
-                $ss = "";
-            }
-            $stylesheets .= "<option value='$ss_id'$ss>$ss_name</option>\n";
-        }
+        $stylesheets = Stylesheets::getStyleDropDown($user['stylesheet']);
         // Country
-        $countries = "<option value='0'>----</option>\n";
-        $ct_r = DB::run("SELECT id,name from countries ORDER BY name");
-        while ($ct_a = $ct_r->fetch(PDO::FETCH_LAZY)) {
-            $countries .= "<option value='$ct_a[id]'" . ($user['country'] == $ct_a['id'] ? " selected='selected'" : "") . ">$ct_a[name]</option>\n";
-        }
+        $countries = Countries::pickCountry($user['country']);
         // Timezone
-        ksort($tzs);
-        reset($tzs);
-        while (list($key, $val) = thisEach($tzs)) {
-            if ($user["tzoffset"] == $key) {
-                $tz .= "<option value=\"$key\" selected='selected'>$val[0]</option>\n";
-            } else {
-                $tz .= "<option value=\"$key\">$val[0]</option>\n";
-            }
-        }
+        $tz = TimeDate::timeZoneDropDown($user['tzoffset']);
         //Teams
-        $teams = "<option value='0'>--- " . Lang::T("NONE_SELECTED") . " ----</option>\n";
-        $sashok = DB::run("SELECT id,name FROM teams ORDER BY name");
-        while ($sasha = $sashok->fetch(PDO::FETCH_LAZY)) {
-            $teams .= "<option value='$sasha[id]'" . ($user['team'] == $sasha['id'] ? " selected='selected'" : "") . ">$sasha[name]</option>\n";
-        }
+        $teams = Team::dropDownTeams($user['team']);
         $gender = "<option value='Male'" . ($user['gender'] == "Male" ? " selected='selected'" : "") . ">" . Lang::T("MALE") . "</option>\n"
         . "<option value='Female'" . ($user['gender'] == "Female" ? " selected='selected'" : "") . ">" . Lang::T("FEMALE") . "</option>\n";
-        
-        $user1 = $this->userModel->getAll($id);
+
+        $user1 = Users::getAll($id);
         $cardheader = sprintf(Lang::T("USER_DETAILS_FOR"), Users::coloredname($user["username"]));
         $data = [
             'title' => $cardheader,
@@ -154,17 +111,16 @@ class Profile extends Controller
             'id' => $id,
             'selectuser' => $user1,
         ];
-        $this->view('user/edit', $data, 'user');
+        View::render('user/edit', $data, 'user');
     }
 
     public function submit()
     {
-        $db = new Database();
-        $id = (int) $_GET["id"];
-        if ($_SESSION['class'] < 5 && $id != $_SESSION['id']) {
-            Session::flash('info', Lang::T("You dont have permission"), URLROOT."/home");
+        $id = (int) Input::get("id");
+        if ($_SESSION['class'] < _MODERATOR && $id != $_SESSION['id']) {
+            Redirect::autolink(URLROOT, Lang::T("You dont have permission"));
         }
-        if ($_POST) {
+        if (Input::exist()) {
             $avatar = strip_tags($_POST["avatar"]);
             $title = strip_tags($_POST["title"]);
             $signature = $_POST["signature"];
@@ -180,7 +136,7 @@ class Profile extends Controller
             $notifs = ($pmnotif == 'yes' ? "[pm]" : "");
             if ($_POST['resetpasskey']) {
                 $passkey = '';
-                $db->run("UPDATE users
+                DB::run("UPDATE users
                        SET passkey=?
                        WHERE id =?", [$passkey, $id]);
             }
@@ -192,74 +148,74 @@ class Profile extends Controller
             }
             $hideshoutbox = ($_POST["hideshoutbox"] == "yes") ? "yes" : "no";
             // Save New details. todo removed passkey
-            $db->run("UPDATE users
+            DB::run("UPDATE users
                        SET avatar=?, title=?, signature=?, stylesheet=?, client=?, age=?, gender=?, country=?, team=?, hideshoutbox=?, acceptpms=?, privacy=?, notifs=?, tzoffset=?
                        WHERE id =?", [$avatar, $title, $signature, $stylesheet, $client, $age, $gender, $country, $teams, $hideshoutbox, $acceptpms, $privacy, $notifs, $timezone, $id]);
-            Session::flash('info', "User Edited", URLROOT."/profile/edit?id=$id");
+            Redirect::autolink(URLROOT . "/profile/edit?id=$id", Lang::T("User Edited"));
         }
     }
 
     public function admin()
     {
-        $id = (int) $_GET["id"];
-        if ($_SESSION['class'] < 5 && $id != $_SESSION['id']) {
-            Session::flash('info', Lang::T("You dont have permission"), URLROOT."/admin?id=$id");
+        $id = (int) Input::get("id");
+        if ($_SESSION['class'] < _MODERATOR && $id != $_SESSION['id']) {
+            Redirect::autolink(URLROOT . "/profile?id=$id", Lang::T("You dont have permission"));
         }
-        $user1 = User::getUserById($id);
-        $user = $this->userModel->getAll($id);
+        $user1 = Users::getUserById($id);
+        $user = Users::getAll($id);
         $cardheader = sprintf(Lang::T("USER_DETAILS_FOR"), Users::coloredname($user1["username"]));
         $data = [
             'id' => $id,
             'title' => $cardheader,
             'selectuser' => $user,
         ];
-        $this->view('user/admin', $data, 'user');
+        View::render('user/admin', $data, 'user');
     }
 
     public function submited()
     {
         $id = (int) $_GET["id"];
         if ($_SESSION['class'] < 5 && $id != $_SESSION['id']) {
-            Session::flash('info', Lang::T("You dont have permission"), URLROOT."/admin?id=$id");
+            Redirect::autolink(URLROOT . "/profile?id=$id", Lang::T("You dont have permission"));
         }
-        if ($_POST) {
-            $downloaded = strtobytes($_POST["downloaded"]);
-            $uploaded = strtobytes($_POST["uploaded"]);
-            $ip = $_POST["ip"];
-            $class = (int) $_POST["class"];
-            $donated = (float) $_POST["donated"];
-            $password = $_POST["password"];
-            $warned = $_POST["warned"];
-            $forumbanned = $_POST["forumbanned"];
-            $downloadbanned = $_POST["downloadbanned"];
-            $shoutboxpos = $_POST["shoutboxpos"];
-            $modcomment = $_POST["modcomment"];
-            $enabled = $_POST["enabled"];
-            $invites = (int) $_POST["invites"];
-            $email = $_POST["email"];
-            $bonus = $_POST["bonus"];
-            $valid = new Validation();
-            if (!$valid->validEmail($email)) {
-                Session::flash('info', Lang::T("EMAIL_ADDRESS_NOT_VALID"), URLROOT."/admint?id=$id");
+        if (Input::exist()) {
+            $downloaded = strtobytes(Input::get("downloaded"));
+            $uploaded = strtobytes(Input::get("uploaded"));
+            $ip = Input::get("ip");
+            $class = (int) Input::get("class");
+            $donated = (float) Input::get("donated");
+            $password = Input::get("password");
+            $warned = Input::get("warned");
+            $forumbanned = Input::get("forumbanned");
+            $downloadbanned = Input::get("downloadbanned");
+            $shoutboxpos = Input::get("shoutboxpos");
+            $modcomment = Input::get("modcomment");
+            $enabled = Input::get("enabled");
+            $invites = (int) Input::get("invites");
+            $email = Input::get("email");
+            $bonus = Input::get("bonus");
+
+            if (!Validate::Email($email)) {
+                Redirect::autolink(URLROOT . "/profile?id=$id", Lang::T("EMAIL_ADDRESS_NOT_VALID"));
             }
+
             //change user class
             $arr = DB::run("SELECT class FROM users WHERE id=?", [$id])->fetch();
             $uc = $arr['class'];
             // skip if class is same as current
-            if ($uc != $class && $uc > $class) {
-            //if ($uc <= get_others_class($id)) { // todo
-                Session::flash('info', Lang::T("YOU_CANT_DEMOTE_YOURSELF"), URLROOT."/admin?id=$id");
-            } elseif ($uc <= get_others_class($id)) {
-                Session::flash('info', Lang::T("YOU_CANT_DEMOTE_SOMEONE_SAME_LVL"), URLROOT."/admin?id=$id");
+            if ($uc != $class && $uc > $_SESSION['class']) {
+                Redirect::autolink(URLROOT . "/admin?id=$id", Lang::T("YOU_CANT_DEMOTE_YOURSELF"));
+            } elseif ($uc == $_SESSION['class']) {
+                Redirect::autolink(URLROOT . "/admin?id=$id", Lang::T("YOU_CANT_DEMOTE_SOMEONE_SAME_LVL"));
             } else {
                 DB::run("UPDATE users SET class=? WHERE id=?", [$class, $id]);
                 // Notify user
                 $prodemoted = ($class > $uc ? "promoted" : "demoted");
-                $msg = "You have been $prodemoted to " . get_user_class_name($class) . " by " . $_SESSION["username"] . "";
+                $msg = "You have been $prodemoted to " . Groups::get_user_class_name($class) . " by " . $_SESSION["username"] . "";
                 $added = TimeDate::get_date_time();
                 DB::run("INSERT INTO messages (sender, receiver, msg, added) VALUES(?,?,?,?)", [0, $_SESSION['id'], $msg, $added]);
             }
-            // }
+
             //continue updates
             DB::run("UPDATE users
             SET email=?, downloaded=?, uploaded=?, ip=?, donated=?, forumbanned=?, warned=?,
@@ -269,13 +225,12 @@ class Profile extends Controller
 
             Logs::write($_SESSION['username'] . " has edited user: $id details");
 
-            if ($_POST['resetpasskey'] == 'yes') {
+            if (Input::get('resetpasskey') == 'yes') {
                 DB::run("UPDATE users SET passkey=? WHERE id=?", ['', $uploaded]);
             }
 
-            $chgpasswd = $_POST['chgpasswd'] == 'yes' ? true : false;
+            $chgpasswd = Input::get('chgpasswd') == 'yes' ? true : false;
             if ($chgpasswd) {
-                //        $passreq = DB::run("SELECT password FROM users WHERE id=$userid");
                 $passres = DB::run("SELECT password FROM users WHERE id=?", [$id])->fetch();
                 if ($password != $passres['password']) {
                     $password = password_hash($password, PASSWORD_BCRYPT);
@@ -283,31 +238,31 @@ class Profile extends Controller
                     Logs::write($_SESSION['username'] . " has changed password for user: $id");
                 }
             }
-            Session::flash('info', Lang::T("User Edited"), URLROOT."/profile?id=$id");
+            Redirect::autolink(URLROOT . "/profile?id=$id", Lang::T("User Edited"));
             die;
         }
     }
 
     public function delete()
     {
-        $userid = (int) $_POST["userid"];
-        $username = $_POST["username"];
-        $delreason = $_POST["delreason"];
-        if ($_SESSION["delete_users"] != "yes" ) {
-            Session::flash('info', Lang::T("TASK_ADMIN"), URLROOT . "/profile?id=$userid");
+        $userid = (int) Input::get("userid");
+        $username = Input::get("username");
+        $delreason = Input::get("delreason");
+        if ($_SESSION["delete_users"] != "yes") {
+            Redirect::autolink(URLROOT . "/profile?id=$userid", Lang::T("TASK_ADMIN"));
         }
-        if (!$this->valid->validId($userid)) {
-            Session::flash('info', Lang::T("INVALID_USERID"), URLROOT . "/profile?id=$userid");
+        if (!Validate::Id($userid)) {
+            Redirect::autolink(URLROOT . "/profile?id=$userid", Lang::T("INVALID_USERID"));
         }
         if ($_SESSION["id"] == $userid) {
-            Session::flash('info', "You cannot delete yourself.", URLROOT . "/profile?id=$userid");
+            Redirect::autolink(URLROOT . "/profile?id=$userid", "You cannot delete yourself.");
         }
         if (!$delreason) {
-            Session::flash('info', Lang::T("MISSING_FORM_DATA"), URLROOT . "/profile?id=$userid");
+            Redirect::autolink(URLROOT . "/profile?id=$userid", Lang::T("MISSING_FORM_DATA"));
         }
-        $this->userModel->deleteuser($userid);
+        Users::deleteuser($userid);
         Logs::write($_SESSION['username'] . " has deleted account: $username");
-        Session::flash('info', Lang::T("USER_DELETE"), URLROOT);
+        Redirect::autolink(URLROOT . "/profile?id=$userid", Lang::T("USER_DELETE"));
         die;
     }
 

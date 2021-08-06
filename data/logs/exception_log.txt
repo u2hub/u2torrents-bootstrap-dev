@@ -1,0 +1,34 @@
+
+Uncaught Exception: 2021-08-05 03:26:00 - Call to a member function run() on null in file /volume1/web/u2sites.xyz/bootstrapdev.u2site.xyz/app/controllers/Topten.php on line 34
+
+Call Stack
+
+[0] File: /volume1/web/u2sites.xyz/bootstrapdev.u2site.xyz/app/libraries/Core.php Line: 51
+Function: Topten->index
+Call parameters
+
+[1] File: /volume1/web/u2sites.xyz/bootstrapdev.u2site.xyz/public_html/index.php Line: 4
+Function: Core->__construct
+Call parameters
+Uncaught Exception: 2021-08-06 14:02:00 - Call to a member function run() on null in file /volume1/web/u2sites.xyz/bootstrapdev.u2site.xyz/app/controllers/Topten.php on line 34
+
+Call Stack
+
+[0] File: /volume1/web/u2sites.xyz/bootstrapdev.u2site.xyz/app/libraries/Core.php Line: 51
+Function: Topten->index
+Call parameters
+
+[1] File: /volume1/web/u2sites.xyz/bootstrapdev.u2site.xyz/public_html/index.php Line: 4
+Function: Core->__construct
+Call parameters
+Uncaught Exception: 2021-08-06 14:02:12 - Call to a member function run() on null in file /volume1/web/u2sites.xyz/bootstrapdev.u2site.xyz/app/controllers/Topten.php on line 34
+
+Call Stack
+
+[0] File: /volume1/web/u2sites.xyz/bootstrapdev.u2site.xyz/app/libraries/Core.php Line: 51
+Function: Topten->index
+Call parameters
+
+[1] File: /volume1/web/u2sites.xyz/bootstrapdev.u2site.xyz/public_html/index.php Line: 4
+Function: Core->__construct
+Call parameters

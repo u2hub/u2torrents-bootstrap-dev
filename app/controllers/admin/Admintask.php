@@ -1,14 +1,10 @@
 <?php
-class Admintask extends Controller
+class Admintask
 {
 
     public function __construct()
     {
-        Auth::user();
-        Auth::isStaff();
-        // $this->userModel = $this->model('User');
-        $this->logsModel = $this->model('Logs');
-        $this->valid = new Validation();
+        $this->session = Auth::user(_MODERATOR, 2);
     }
 
     public function index()
@@ -40,4 +36,5 @@ class Admintask extends Controller
         $TTCache->Delete("request_block");
         Redirect::autolink(URLROOT . "/admincp", 'Purge Cache Successful');
     }
+
 }

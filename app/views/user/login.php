@@ -4,7 +4,7 @@
         <?php }?>
         <div class="row justify-content-center">
         <form method="post" action="<?php echo URLROOT; ?>/login/submit" autocomplete="off">
-        <input type="hidden" name="token" value="<?php echo Token::generate(); ?>" />
+        <input type="hidden" name="csrf_token" value="<?php echo $data['token'] ?>" />
         <div class="form-group">
             <label for="username"><?php echo Lang::T("USERNAME"); ?></label>
             <input id="username" type="text" class="form-control" name="username" minlength="3" maxlength="25" required autofocus>
@@ -15,7 +15,7 @@
 	    </div>
         <div class="form-group">
             <?php (new Captcha)->html(); ?>
-            <button type="submit" class="btn btn-warning btn-block"><?php echo Lang::T("LOGIN"); ?></button>
+            <button type="submit" class="btn ttbtn btn-block"><?php echo Lang::T("LOGIN"); ?></button>
             <center><i><?php echo Lang::T("COOKIES"); ?></i></center>
 		</div>
         <div class="margin-top20 text-center">

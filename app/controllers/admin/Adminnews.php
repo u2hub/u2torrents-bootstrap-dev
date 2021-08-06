@@ -1,14 +1,10 @@
 <?php
-class Adminnews extends Controller
+class Adminnews
 {
 
     public function __construct()
     {
-        Auth::user();
-        Auth::isStaff();
-        // $this->userModel = $this->model('User');
-        $this->logsModel = $this->model('Logs');
-        $this->valid = new Validation();
+        $this->session = Auth::user(_MODERATOR, 2);
     }
 
     public function index()
@@ -18,7 +14,7 @@ class Adminnews extends Controller
             'title' => Lang::T("NEWS"),
             'sql' => $res
         ];
-        $this->view('news/index', $data, 'admin');
+        View::render('news/index', $data, 'admin');
     }
 
     public function add()
@@ -26,18 +22,18 @@ class Adminnews extends Controller
         $data = [
             'title' => Lang::T("CP_NEWS_ADD"),
         ];
-        $this->view('news/add', $data, 'admin');
+        View::render('news/add', $data, 'admin');
     }
 
     public function submit()
     {
         $body = $_POST["body"];
         if (!$body) {
-            show_error_msg(Lang::T("ERROR"), Lang::T("ERR_NEWS_ITEM_CAN_NOT_BE_EMPTY"), 1);
+            Redirect::autolink(URLROOT."/adminnews/add", Lang::T("ERR_NEWS_ITEM_CAN_NOT_BE_EMPTY"));
         }
         $title = $_POST['title'];
         if (!$title) {
-            show_error_msg(Lang::T("ERROR"), Lang::T("ERR_NEWS_TITLE_CAN_NOT_BE_EMPTY"), 1);
+            Redirect::autolink(URLROOT."/adminnews/add", Lang::T("ERR_NEWS_TITLE_CAN_NOT_BE_EMPTY"));
         }
         $added = $_POST["added"];
         if (!$added) {
@@ -45,21 +41,21 @@ class Adminnews extends Controller
         }
         $afr = DB::run("INSERT INTO news (userid, added, body, title) VALUES (?,?,?,?)", [$_SESSION['id'], $added, $body, $title]);
         if ($afr) {
-            Redirect::autolink(URLROOT . "/adminnews", Lang::T("CP_NEWS_ITEM_ADDED_SUCCESS"));
+            Redirect::autolink(URLROOT."/adminnews/add", Lang::T("CP_NEWS_ITEM_ADDED_SUCCESS"));
         } else {
-            show_error_msg(Lang::T("ERROR"), Lang::T("CP_NEWS_UNABLE_TO_ADD"), 1);
+            Redirect::autolink(URLROOT."/adminnews/add", Lang::T("CP_NEWS_UNABLE_TO_ADD"));
         }
     }
 
     public function edit()
     {
         $newsid = (int) $_GET["newsid"];
-        if (!$this->valid->validId($newsid)) {
-            show_error_msg(Lang::T("ERROR"), sprintf(Lang::T("CP_NEWS_INVAILD_ITEM_ID"), $newsid), 1);
+        if (!Validate::Id($newsid)) {
+            Redirect::autolink(URLROOT."/adminnews", sprintf(Lang::T("CP_NEWS_INVAILD_ITEM_ID").$newsid));
         }
         $res = DB::run("SELECT * FROM news WHERE id=?", [$newsid]);
         if ($res->rowCount() != 1) {
-            show_error_msg(Lang::T("ERROR"), sprintf(Lang::T("CP_NEWS_NO_ITEM_WITH_ID"), $newsid), 1);
+            Redirect::autolink(URLROOT."/adminnews", sprintf(Lang::T("CP_NEWS_NO_ITEM_WITH_ID").$newsid));
         }
         
         $data = [
@@ -68,7 +64,7 @@ class Adminnews extends Controller
             'title' => Lang::T("CP_NEWS_EDIT"),
             'returnto' => $returnto = htmlspecialchars($_GET['returnto'])
         ];
-        $this->view('news/edit', $data, 'admin');
+        View::render('news/edit', $data, 'admin');
     }
 
     public function updated()
@@ -76,11 +72,11 @@ class Adminnews extends Controller
         $newsid = (int) $_GET["id"];
         $body = $_POST['body'];
         if ($body == "") {
-            show_error_msg(Lang::T("ERROR"), Lang::T("FORUMS_BODY_CANNOT_BE_EMPTY"), 1);
+            Redirect::autolink(URLROOT."/adminnews/edit", Lang::T("FORUMS_BODY_CANNOT_BE_EMPTY"));
         }
         $title = $_POST['title'];
         if ($title == "") {
-            show_error_msg(Lang::T("ERROR"), Lang::T("ERR_NEWS_TITLE_CAN_NOT_BE_EMPTY"), 1);
+            Redirect::autolink(URLROOT."/adminnews/edit", Lang::T("ERR_NEWS_TITLE_CAN_NOT_BE_EMPTY"));
         }
         $editedat = TimeDate::get_date_time();
         DB::run("UPDATE news SET body=?, title=? WHERE id=?", [$body, $title, $newsid]);
@@ -91,8 +87,8 @@ class Adminnews extends Controller
     public function newsdelete()
     {
         $newsid = (int) $_GET["newsid"];
-        if (!$this->valid->validId($newsid)) {
-            show_error_msg(Lang::T("ERROR"), sprintf(Lang::T("CP_NEWS_INVAILD_ITEM_ID"), $newsid), 1);
+        if (!Validate::Id($newsid)) {
+            Redirect::autolink(URLROOT."/adminnews", sprintf(Lang::T("CP_NEWS_INVAILD_ITEM_ID").$newsid));
         }
         DB::run("DELETE FROM news WHERE id=?", [$newsid]);
         DB::run("DELETE FROM comments WHERE news =?", [$newsid]);

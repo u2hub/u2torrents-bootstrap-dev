@@ -1,11 +1,15 @@
 /* u2 */
+
+/* This option defines, unless defined in the class: font size, line height, background color and site height (which helps with positioning the footer) */
 html, body {
-	height: 100%;
-    font-size: 1.0 rem;   /* this option adjusts the general font size */
-	background-color: #dddddd;
-	color: #322e2d;
-	line-height: 1.4;
+    height: 100%;
+    font-size: 1.0 rem;   /* this option adjusts, overrules the general font size */
+    background-color: #dddddd;
+    color: #322e2d;
+    line-height: 1.4;
 }
+
+/* This option helps to format the lists (like the navigation menu. */
 .list-group-item {
     position: relative;
     display: block;
@@ -15,23 +19,8 @@ html, body {
     border: 1px solid #fff;
 }
 
-.col-sm-2, .col-sm-8 {
-    padding-right: 5px;
-    padding-left: 5px;
-}
 
-@media (min-width: 768px) {
-	.col-sm-8 {
-		flex: 0 0 72.667%; /* Center Column width. Note: linked to side (.col-sm-2) width and linked to @media setting */
-		max-width: 72.66667%;
-	}
-
-	.col-sm-2 {
-		flex: 0 0 13.667%;	/* Side Column width. Note: linked to center (.col-sm-8) width and linked to @media setting */
-		max-width: 13.66667%;
-	}
-}
-
+/* This option defines the background image, and how "visible" it is on the site. */
 .container-fluid {
 	min-height: 78.30%;
     padding-right: 16px;
@@ -43,96 +32,158 @@ html, body {
 	background-attachment: fixed;
 	background-size: cover;
 }
-/* Toggle */
-.custom-toggler .navbar-toggler-icon {
-	background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(255,102,203, 0.5)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 8h24M4 16h24M4 24h24'/%3E%3C/svg%3E");
+  
+/* Links, here can define color/hover color, click color etc */
+a {
+    color: #000 !important;
 }
-.custom-toggler.navbar-toggler {
-	border-color: rgb(255,102,203);
+
+.blink {	/* Used to make text blink where needed to draw attention */
+    animation: blinker 1s infinite;
+}
+  
+@keyframes blinker {
+    from { opacity: 1.0; }
+    50% { opacity: 0.5; }
+    to { opacity: 1.0; }	
+}
+
+/* Define the width of the 2 side bars */
+.ttsidebar {
+    -ms-flex: 0 0 225px;
+    flex: 0 0 225px;
 } 
+/* Define the spacing between center contents and side bars */
+.col{
+   padding-right: 10px;
+   padding-left: 10px;
+}
+
+@media only screen and (max-width: 1143px) {
+	.ttsidebar {
+		display: none !important;
+	}
+}
+
+.ttbottombar {
+    width: 50% !important;
+}
+
+@media only screen and (min-width: 1143px) {
+	.ttbottombar {
+		display: none !important;
+	}
+}
+
+
+@media only screen and (max-width: 1967px) {
+	.ttmobile {
+		max-width: 600px !important;
+	}
+}
+
+.navbar {
+    background-image: -webkit-linear-gradient(top, #a2a1a6, #dddddd);
+    background-image: linear-gradient(to bottom, #a2a1a6, #dddddd);
+    background-repeat: repeat-x;
+	padding: 0rem 1rem;
+}
+
+.frame-header {
+    color: #fff;
+    background-image: -webkit-linear-gradient(top, #322e2d, #342f2c) !important;
+    background-image: linear-gradient(to bottom, #322e2d, #342f2c) !important;
+    background-repeat: repeat-x;
+    border-bottom: 0px;
+    height: 35px;
+}
+
+.frame-body {
+	border: 10px solid;
+	padding: 0.95rem;
+        background-color: #eeeeee;
+    
+        border-image-source: linear-gradient(to bottom, #322e2d, #342f2c);
+}
+
+.block-header {
+    color: #fff;
+    background-image: -webkit-linear-gradient(top, #322e2d, #342f2c) !important;
+    background-image: linear-gradient(to bottom, #322e2d, #342f2c) !important;
+    background-repeat: repeat-x;
+    border-bottom: 0px;
+    height: 35px;
+}
+
+.block-body {
+	border: 10px solid;
+	padding: 0.25rem;
+    
+        background-color: #eeeeee;
+    
+        border-image-source: linear-gradient(to bottom, #322e2d, #342f2c);
+}
+
+.ttbtn {
+	color: #fff !IMPORTANT;
+    background-image: -webkit-linear-gradient(top, #322e2d, #342f2c) !important;
+    background-image: linear-gradient(to bottom, #322e2d, #342f2c) !important;
+}
+
+.ttbtn:hover {
+	color: #ff9933 !IMPORTANT;
+}
+.ttborder {
+	border: 1px solid #322e2d !IMPORTANT;
+}
+
+.row {
+	margin-right: -8px;
+    margin-left: -8px;
+}
+
+.ttblend {
+    color: #fff;
+    background-image: -webkit-linear-gradient(top, #322e2d, #342f2c) !important;
+    background-image: linear-gradient(to bottom, #322e2d, #342f2c) !important;
+    background-repeat: repeat-x;
+}
+  
+.ttalert {
+	color: #fff;
+    background-image: -webkit-linear-gradient(top, #81b3dd, #3895D3) !IMPORTANT;
+    background-image: linear-gradient(to bottom, #81b3dd, #3895D3) !IMPORTANT;
+	background-repeat: repeat-x;
+}
+
+  #country-list{list-style:none;width:190px;}
+  #country-list li{padding: 10px; background: #f0f0f0; border-bottom: #bbb9b9 1px solid;}
+  #country-list li:hover{background:#ece3d2;cursor: pointer;}
+  #search-box{padding: 10px;border: #a8d4b1 1px solid;border-radius:4px;}
+
+  .custom-toggler .navbar-toggler-icon {
+  background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 32 32' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(255,102,203, 0.5)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 8h24M4 16h24M4 24h24'/%3E%3C/svg%3E");
+}
+
+.custom-toggler.navbar-toggler {
+  border-color: rgb(255,102,203);
+} 
+
 .navbar-toggler {
-	  border: 1px solid white !IMPORTANT;
-}
-  
-  
-/* ShoutBox */
-.shoutbox_body {
-	color: yellow;
-	float: middle;
-	background-color: transparent;
-}
-.shoutbox_contain {
-	border: 0;
-	height: 250px;
-	width: 100%;
-	overflow: auto;
-}
-.shoutbox_history {
-	border: 0;
-	height: 100%;
-	width: 100%;
-}
-.shoutbox_messageboxback {
-	background-color: transparent;
-}
-.shoutbox_noalt {
-	background-color: #eeeeee;
-	font-size: 16px;
-	color: #322e2d;
-	border-right: 2px solid #fff;
-	border-left: 2px solid #fff;
-	-webkit-border-radius: 12px 4px;
-    -moz-border-radius: 12px 4px;
-    border-radius: 12px 4px;
-	font-variant: small-caps;
-	line-height: 16px;
-	margin: 1px;
-}
-.shoutbox_alt {
-	background-color: #dddddd;
-	font-size: 16px;
-	color: #322e2d;
-	border-left: 2px solid #fff;
-	border-right: 2px solid #fff;
-    -webkit-border-radius: 12px 4px;
-    -moz-border-radius: 12px 4px;
-    border-radius: 12px 4px;
-	font-variant: small-caps;
-	line-height: 16px;
-	margin: 1px;
-}
-.shoutbox_msgbox {
-	width: 100%;
-	font-size: 16px;
-	background-color: #FFF;
-	border: 1px solid #777;
-}
-.shoutbox_shoutbtn {
-	font-size: 12px;
-	background-color: AliceBlue;
-	border: 1px solid black;
-	font-weight: bold;
-}
-.shoutbox_error {
-	color: red;
-	font-size: 13px;
+    border: 1px solid white !IMPORTANT;
 }
 
-
-/* heders */
 .f-cat {
 	background-color: #DE9000;
-	background-image: -webkit-linear-gradient(top, #ff9900, #DE9000);
-	background-image: linear-gradient(to bottom, #ff9900, #DE9000);
-	background-repeat: repeat-x;
+    background-image: -webkit-linear-gradient(top, #ff9900, #DE9000);
+    background-image: linear-gradient(to bottom, #ff9900, #DE9000);
+    background-repeat: repeat-x;
 	background-position: top;
 	margin: 0px;
 	padding: 0px;
 	height: 28px;
 }
-  
-  
-/* Boders */
+
 .border-success {
 	border-radius: 9px 9px 9px 9px !IMPORTANT;
 -moz-border-radius: 9px 9px 9px 9px !IMPORTANT;
@@ -149,26 +200,30 @@ border: 5px solid #ff0000 !IMPORTANT;
 	border-radius: 9px 9px 9px 9px !IMPORTANT;
 -moz-border-radius: 9px 9px 9px 9px !IMPORTANT;
 -webkit-border-radius: 9px 9px 9px 9px !IMPORTANT;
-border: 5px solid #ff9900 !IMPORTANT;
+border: 3px solid #3895D3 !IMPORTANT;
 }
-
 .border-primary {
-	border-radius: 9px 9px 9px 9px !IMPORTANT;
--moz-border-radius: 9px 9px 9px 9px !IMPORTANT;
--webkit-border-radius: 9px 9px 9px 9px !IMPORTANT;
-border: 5px solid #3895D3 !IMPORTANT;
-}
-  
-
-/* Tables */
-.newtd {
-    color: #fff;
-    background-image: -webkit-linear-gradient(top, #322e2d, #342f2c);
-    background-image: linear-gradient(to bottom, #322e2d, #342f2c);
-    background-repeat: repeat-x;
+border: 2px solid #3895D3 !IMPORTANT;
 }
 
-/* -- Tables --*/
+/* Styles ShoutBox */
+
+.shoutbox_contain {
+	border: 0;
+	height: 250px;
+	width: 100%;
+	overflow: auto;
+}
+
+.shoutbox_msgbox {
+	width: 100%;
+	font-size: 16px;
+	background-color: #FFF;
+	border: 1px solid #777;
+}
+
+
+/* -- Bootstrap Table --*/
 .table thead th {
         color: #fff;
         background-color: #322e2d;
@@ -176,12 +231,12 @@ border: 5px solid #3895D3 !IMPORTANT;
         background-image: linear-gradient(to bottom, #322e2d, #342f2c);
         background-repeat: repeat-x;
 }
-.table td, .table th {
-    padding: 0.25rem;
-    vertical-align: top;
-    border-top: 1px solid #dee2e6;
-	color: #000;
+
+.navbar-nav .nav-link {
+    color: #000;
+    font-size: 1.15rem;
 }
+
 .ttheader {
 	color: #fff;
 	background-color: #ff9900;
@@ -189,157 +244,80 @@ border: 5px solid #3895D3 !IMPORTANT;
 	background-image: linear-gradient(to bottom, #a9111f, #ff9900);
 	background-repeat: repeat-x;
 }
+
 .tbody td {
     background-color: #EEEEEE;
 }
-  
-/* Navbars */
-.navbar-nav .nav-link {
-    color: #000;
-    font-size: 18px;
-}
-.navbar {
-    background-image: -webkit-linear-gradient(top, #a2a1a6, #dddddd);
-    background-image: linear-gradient(to bottom, #a2a1a6, #dddddd);
-    background-repeat: repeat-x;
-    padding: 0.1rem 0.1rem;
-}
-@media (min-width: 768px) {
-	.navbar-brand {
-		padding-top: 0rem;
-		padding-bottom: 0rem;	
-}
-}
-.navbarone {
-    background-image: -webkit-linear-gradient(top, #332e2e, #a2a1a6);
-    background-image: linear-gradient(to bottom, #332e2e, #a2a1a6);
-    background-repeat: repeat-x;
-	color: #fff;
-}
-@media (min-width: 1850px) {  /* this option adjusts how far the search block in the header moves right. It will only be visible on the right on pc screens. Phones it should be attached to the menu by default. */
-	.input-group-sm {
-		padding-left: 525px;
-	}
-}
 
-
-/* Alerts */
-  .alert-info {
-    color: #070b0c !IMPORTANT;
-    background-color: #f6f863 !IMPORTANT;
-    border-color: #f6f863 !IMPORTANT;
-}
-
-
-/* Button Yellow */
-.btn-warning {
-    color: #fff  !IMPORTANT;
-	background-image: -webkit-linear-gradient(top, #072F5F, #3895D3) !IMPORTANT;
-	background-image: linear-gradient(to bottom, #072F5F, #3895D3) !IMPORTANT;
-}
-
-
- /* Cards */ 
 .card {
     background-color: transparent; /* Needed to make the padding-bottom work */
     border: 0px; /* Needed to make the padding-bottom work */
     padding-bottom: 10px;  /* adjust this value to change the vertical spacing for left and right column, and also center column */
     opacity: 1;  /* this option adjusts transparancy of the blocks, thus the background picture will become more or less visible */
 }
+
 .card-header {
     color: #fff;
     background-image: -webkit-linear-gradient(top, #322e2d, #342f2c);
     background-image: linear-gradient(to bottom, #322e2d, #342f2c);
     background-repeat: repeat-x;
     border-bottom: 0px;
-	padding: 0.5rem;
+    padding: 0.5rem;
 }
+
 .card-header1 {
-	color: #fff;
-	background-image: -webkit-linear-gradient(top, #3895D3, #072F5F);
-	background-image: linear-gradient(to bottom, #3895D3, #072F5F);
+    color: #fff;
+    background-image: -webkit-linear-gradient(top, #3895D3, #072F5F);
+    background-image: linear-gradient(to bottom, #3895D3, #072F5F);
 	background-repeat: repeat-x;
 	border-bottom: 0px;
 	height: 35px;
 }
+
 .card-body {
     border: 1px solid;
-	border-top-width: 1px;
-	border-right-width: 1px;
-	border-bottom-width: 1px;
-	border-left-width: 1px;
-	border-image-slice: 100%;
-	border-image-source: none;
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    border-image-slice: 100%;
+    border-image-source: none;
     border-image-slice: 1;
     border-width: 1px;
     background-color: #eeeeee;
     border-image-source: linear-gradient(to bottom, #322e2d, #342f2c);
     padding: 0.5rem;
-	opacity: 0.93;  /* this option adjusts transparancy of the blocks, thus the background picture will become more or less visible */
+    opacity: 0.82;  /* this option adjusts transparancy of the blocks, thus the background picture will become more or less visible */
 }
-.card-body-login {    
-	border: 1px solid;
-	border-top-width: 1px;
-	border-right-width: 1px;
-	border-bottom-width: 1px;
-	border-left-width: 1px;
-	border-image-slice: 100%;
-	border-image-source: none;
-    border-image-slice: 1;
-    border-width: 1px;
-    background-color: #transparent;
-    border-image-source: linear-gradient(to bottom, #322e2d, #342f2c);
-    padding: 0.5rem;
-	padding-top: 1rem;
-	opacity: 0.96;  /* this option adjusts transparancy of the blocks, thus the background picture will become more or less visible */
-}
+
+/* This class defines the footer */
+
 .card-footer {
-	width: 100%;
-	padding: 0.75rem 1.25rem;
-	background-image: -webkit-linear-gradient(top, #dddddd, #a2a1a6);
+    width: 100%;
+    padding: 0.75rem 1.25rem;
+    background-image: -webkit-linear-gradient(top, #dddddd, #a2a1a6);
     background-image: linear-gradient(to bottom, #dddddd, #a2a1a6);
     background-repeat: repeat-x;
-	border-top: 7px solid rgba(0, 0, 0, 0.125);
-	font-size: 0.7rem;
+    border-top: 7px solid rgba(0, 0, 0, 0.125);
+    font-size: 0.8rem;
 }
 
 
-/* Links */
-a {
-    color: #000 !important;
+.navbarone {
+    background-image: -webkit-linear-gradient(top, #332e2e, #a2a1a6);
+    background-image: linear-gradient(to bottom, #332e2e, #a2a1a6);
+    background-repeat: repeat-x;
+	color: #fff;
+}  
+
+ .alert-info {
+    color: #070b0c !IMPORTANT;
+    background-color: #f6f863 !IMPORTANT;
+    border-color: #f6f863 !IMPORTANT;
 }
 
-
-/* sceditor */
-.sceditor-container iframe, .sceditor-container textarea {
-    color: #000 !important;
-    background: #fff !important;
-    width: 100% !important;
-}
-
-div.sceditor-group {
-    display: inline-block !important;
-    margin: 0px 0px 0px 0 !important;
-    padding: 1px !important;
-    border-radius: 0px !important;
-    background-image: linear-gradient(to bottom, #322e2d, #342f2c) !important;
-    border-bottom: 0px solid #000 !important;
-    width: 100% !important;
-}
-
-.sceditor-container textarea {
-    margin: 0px 0px !important;
-	width: 100% !important;
-}
-
-.sceditor-container.sourceMode.ltr {
-	width: 100% !important;
-}
-
-div.sceditor-toolbar {
-    padding: 0px 0px 0px;
-}
-
-div.sceditor-dropdown {
-    background: padding-box #242424;
+.btn-warning {
+    color: #fff  !IMPORTANT;
+	background-image: -webkit-linear-gradient(top, #072F5F, #3895D3) !IMPORTANT;
+	background-image: linear-gradient(to bottom, #072F5F, #3895D3) !IMPORTANT;
 }

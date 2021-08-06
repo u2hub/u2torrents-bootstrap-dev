@@ -119,8 +119,6 @@ class TimeDate
             $date = new DateTime($timestamp, new DateTimeZone("UTC"));
             $ZONE = $tzs[$_SESSION["tzoffset"]][1] ?? "Europe/London";
             $date->setTimezone(new DateTimeZone($ZONE));
-            //$date->setTimezone(new DateTimeZone($_SESSION ? $tzs[$_SESSION["tzoffset"]][1] : "Europe/London"));
-            //$date->setTimezone(new DateTimeZone($tzs[$_SESSION["tzoffset"]][1] ?? "Europe/London"));
             return self::sql_timestamp_to_unix_timestamp($date->format('Y-m-d H:i:s'));
         }
         if (!is_numeric($timestamp)) {
@@ -178,5 +176,36 @@ class TimeDate
         }
 
         return $string ? implode(', ', $string) . ' ago' : 'just now';
+    }
+
+    public static function timeZoneDropDown($tzoffset)
+    {
+        global $tzs;
+        $tz = '';
+        ksort($tzs);
+        reset($tzs);
+        while (list($key, $val) = thisEach($tzs)) {
+            if ($tzoffset == $key) {
+                $tz .= "<option value=\"$key\" selected='selected'>$val[0]</option>\n";
+            } else {
+                $tz .= "<option value=\"$key\">$val[0]</option>\n";
+            }
+        }
+        return $tz;
+    }
+	
+	// $type=date/string || $target=sqlresult || $amount=add/sub date
+	public static function modify($type, $target, $amount)
+    {
+        if ($type == 'date') {
+            $date = date_create($target);
+            date_modify($date, $amount);
+        } elseif ($type == 'time') {
+            $date = date_create();
+            date_timestamp_set($date, $target);
+            date_modify($date, $amount);
+        }
+            
+        return date_format($date, 'Y-m-d H:i:s');
     }
 }

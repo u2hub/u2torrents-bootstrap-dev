@@ -3,7 +3,11 @@ session_start();
 // Load Config
 require_once 'config/config.php';
 // Load Langauge
-require_once LANG . 'english.php';
+if (array_key_exists('language', $_SESSION)) {
+    require_once LANG . $_SESSION['language'].'.php';
+} else {
+    require_once LANG . 'english.php';
+}
 // Error Reporting
 ini_set('display_errors', 0);
 ini_set('display_startup_errors', 0);
@@ -23,11 +27,21 @@ require "helpers/forum_helper.php";
 require "helpers/pagination_helper.php";
 require "helpers/format_helper.php";
 require "helpers/comment_helper.php";
-require "helpers/user_helper.php";
 require "helpers/torrent_helper.php";
 require "helpers/smileys.php";
 require "helpers/bbcode_helper.php";
 // Autoload Classes
-spl_autoload_register(function ($className) {
-    require_once 'libraries/' . $className . '.php';
+spl_autoload_register(function ($model){
+    $filename2 = APPROOT."/models/$model.php";
+        if(file_exists($filename2))
+        {
+            require_once APPROOT."/models/$model.php";
+        }
+});
+spl_autoload_register(function ($class){
+    $filename = APPROOT."/libraries/$class.php";
+        if(file_exists($filename))
+        {
+            require_once APPROOT."/libraries/$class.php";
+        }
 });

@@ -1,14 +1,10 @@
 <?php
-class Adminbonus extends Controller
+class Adminbonus
 {
 
     public function __construct()
     {
-        Auth::user();
-        Auth::isStaff();
-        // $this->userModel = $this->model('User');
-        $this->logsModel = $this->model('Logs');
-        $this->valid = new Validation();
+        $this->session = Auth::user(_MODERATOR, 2);
     }
 
 
@@ -16,7 +12,7 @@ class Adminbonus extends Controller
     {
         if ($_POST['do'] == "del") {
             if (!@count($_POST["ids"])) {
-                show_error_msg("Error", "select nothing.", 1);
+                Redirect::autolink(URLROOT . '/adminbonus', "select nothing.");
             }
             $ids = array_map("intval", $_POST["ids"]);
             $ids = implode(", ", $ids);
@@ -35,13 +31,13 @@ class Adminbonus extends Controller
             'limit' => $limit,
 			'res' => $res,
         ];
-        $this->view('bonus/admin/seedbonus', $data, 'admin');
+        View::render('bonus/admin/seedbonus', $data, 'admin');
     }
 
     public function change()
     {
         $row = null;
-        if ($this->valid->validId($_REQUEST['id'])) {
+        if (Validate::Id($_REQUEST['id'])) {
             $res = DB::run("SELECT id, title, cost, value, descr, type FROM `bonus` WHERE `id` = '$_REQUEST[id]'");
             $row = $res->fetch(PDO::FETCH_LAZY);
         }
@@ -64,6 +60,7 @@ class Adminbonus extends Controller
             'title' => Lang::T("Seedbonus Manager"),
             'row' => $row,
         ];
-        $this->view('bonus/admin/seedbonuschange', $data, 'admin');
+        View::render('bonus/admin/seedbonuschange', $data, 'admin');
     }
+
 }

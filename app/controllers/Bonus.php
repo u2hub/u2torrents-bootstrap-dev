@@ -1,51 +1,46 @@
 <?php
-class Bonus extends Controller
+class Bonus
 {
 
     public function __construct()
     {
-        Auth::user();
-        $this->bonusModel = $this->model('Bonusmodel');
-        $this->userModel = $this->model('User');
-        $this->valid = new Validation();
+        $this->session = Auth::user(0, 2);
     }
 
     public function index()
     {
-        $_POST['id'] = (int) ($_POST['id'] ?? 0);
-        if ($this->valid->validId($_POST['id'])) {
-            $row = $this->bonusModel->getBonusByPost($_POST['id']);
-            if (!$row || $_SESSION['seedbonus'] < $row->cost) {
-                Redirect::autolink("bonus", "Demand not valid.");
+        $id = (int) Input::get("id");
+        if (Validate::Id($id)) {
+            $row = Bonuses::getBonusByPost($id);
+            if (!$row || $_SESSION['seedbonus'] < $row['cost']) {
+                Redirect::autolink(URLROOT."/bonus", "Demand not valid.");
             }
-            $cost = $row->cost;
-            $id = $_SESSION['id'];
-            $this->bonusModel->setBonus($cost, $id);
+            $cost = $row['cost'];
+            Bonuses::setBonus($cost, $_SESSION['id']);
             $this->bonusswitch($row);
-            Redirect::autolink("bonus", "Your account has been credited.");
+            Redirect::autolink(URLROOT."/bonus", "Your account has been credited.");
         }
 
-        $row1 = $this->bonusModel->getAll();
+        $row1 = Bonuses::getAll();
         $data = [
             'title' => 'Seed Bonus',
             'bonus' => $row1,
             'usersbonus' => $_SESSION['seedbonus'],
             'configbonuspertime' => BONUSPERTIME,
             'configautoclean_interval' => floor(ADDBONUS / 60),
-			'getid' => $_GET['id'],
-            'usersid' => $_SESSION['id'],
+			'usersid' => $_SESSION['id'],
         ];
-        $this->view('bonus/index', $data, 'user');
+        View::render('bonus/index', $data, 'user');
     }
 
     private function bonusswitch($row)
     {
-        switch ($row->type) {
+        switch ($row['type']) {
             case 'invite':
-                DB::run("UPDATE `users` SET `invites` = `invites` + '$row->value' WHERE `id` = '$_SESSION[id]'");
+                DB::run("UPDATE `users` SET `invites` = `invites` + '$row[value]' WHERE `id` = '$_SESSION[id]'");
                 break;
             case 'traffic':
-                DB::run("UPDATE `users` SET `uploaded` = `uploaded` + '$row->value' WHERE `id` = '$_SESSION[id]'");
+                DB::run("UPDATE `users` SET `uploaded` = `uploaded` + '$row[value]' WHERE `id` = '$_SESSION[id]'");
                 break;
             case 'HnR':
                 $uid = $_SESSION["class"] == "1" ? (int) $_POST["userid"] : (int) $_SESSION["id"];
@@ -66,7 +61,7 @@ class Bonus extends Controller
                     Logs::write("The HnR of <a href='profile?id=" . $uid . "'>" . Users::coloredname($username) . "</a> on the torrent <a href='torrent?id=" . $tid . "'>" . $torname . "</a> has been cleared by <a href='profile?id=" . $_SESSION['id'] . "'>" . Users::coloredname($_SESSION['username']) . "</a>");
                     $new_modcomment = gmdate("d-m-Y \à H:i") . " - ";
                     if ($uid == $_SESSION["id"]) {
-                        $new_modcomment .= "H&R on the torrent " . $torname . " cleared against " . $row->cost . " points \n";
+                        $new_modcomment .= "H&R on the torrent " . $torname . " cleared against " . $row['cost'] . " points \n";
                     } else {
                         $new_modcomment .= "H&R on the torrent " . $torname . " cleared by " . $_SESSION['username'] . " \n";
                     }
@@ -78,7 +73,7 @@ class Bonus extends Controller
             case 'other':
                 break;
             case 'VIP':
-                $days = $row->value;
+                $days = $row['value'];
                 $vipuntil = ($_SESSION["vipuntil"] > "0000-00-00 00:00:00") ? $vipuntil = TimeDate::get_date_time(strtotime($_SESSION["vipuntil"]) + (60 * 86400)) : $vipuntil = TimeDate::get_date_time(TimeDate::gmtime() + (60 * 86400));
                 $oldclass = ($_SESSION["vipuntil"] > "0000-00-00 00:00:00") ? $oldclass = $_SESSION["oldclass"] : $oldclass = $_SESSION["class"];
                 DB::run("UPDATE `users` SET `class` = '3', `oldclass`='$oldclass', `vipuntil` = '$vipuntil' WHERE `id` = '$_SESSION[id]'");
@@ -120,7 +115,7 @@ class Bonus extends Controller
                     $modcom = $row[9];
                 }
                 $modcomment = gmdate("d-M-Y") . " - " . Lang::T("DELETED_RECORDING") . ": " . $torid . " " . Lang::T("POINTS_OF_SEED_BONUS") . "\n" . $modcom;
-                DB::run("UPDATE users SET seedbonus = seedbonus - '100', modcomment = " . sqlesc($modcomment) . " WHERE id = '$uid'");
+                DB::run("UPDATE users SET seedbonus = seedbonus - '100', modcomment = ? WHERE id = ?", [$modcomment, $uid]);
                 DB::run("UPDATE snatched SET ltime = '86400', hnr = 'no', done = 'yes' WHERE tid = '$torid' AND uid = '$uid'");
                 Logs::write("<a href=" . URLROOT . "/profile?id=$_SESSION[id]><b>$_SESSION[username]</b></a> " . Lang::T("DELETED_RECORDING") . ": <a href=" . URLROOT . "/torrent?id=$torid><b>$torid</b></a> " . Lang::T("POINTS_OF_SEED_BONUS") . "");
                 Redirect::autolink(URLROOT . "/bonus/trade", Lang::T("ONE_RECORDING_HIT_AND_RUN_DELETED"));
@@ -134,7 +129,7 @@ class Bonus extends Controller
                     $modcom = $row[9];
                 }
                 $modcomment = gmdate("d-M-Y") . " - " . Lang::T("DELETED_RECORDING") . ": " . $torid . " with " . $viewsize . " " . Lang::T("OF_UPLOAD") . "\n" . $modcom;
-                DB::run("UPDATE users SET uploaded = uploaded - '$torsize', modcomment = " . sqlesc($modcomment) . " WHERE id = '$uid'");
+                DB::run("UPDATE users SET uploaded = uploaded - '$torsize', modcomment = ? WHERE id = ?", [$modcomment, $uid]);
                 DB::run("UPDATE snatched SET ltime = '86400', hnr = 'no', done = 'yes' WHERE tid = '$torid' AND uid = '$uid'");
                 Logs::write("<a href=" . URLROOT . "/profile?id=$_SESSION[id]><b>$_SESSION[username]</b></a> " . Lang::T("DELETED_RECORDING") . ": <a href=" . URLROOT . "/torrent?id=$torid><b>$torid</b></a> " . Lang::T("HIT_AND_RUN_WITH") . " <b>$viewsize</b> " . Lang::T("OF_UPLOAD") . "");
                 Redirect::autolink(URLROOT . "/bonus/trade", Lang::T("ONE_RECORDING_HIT_AND_RUN_DELETED"));

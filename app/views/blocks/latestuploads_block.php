@@ -1,11 +1,10 @@
 <?php
 if ($_SESSION['loggedin'] == true) {
-    $db = Database::instance();
-    Block::begin(Lang::T("LATEST_TORRENTS"));
+    Style::block_begin(Lang::T("LATEST_TORRENTS"));
     $expire = 900; // time in seconds
     $TTCache = new Cache();
     if (($latestuploadsrecords = $TTCache->Get("latestuploadsblock", $expire)) === false) {
-        $latestuploadsquery = $db->run("SELECT id, name, size, seeders, leechers FROM torrents WHERE banned='no' AND visible = 'yes' ORDER BY id DESC LIMIT 5");
+        $latestuploadsquery = DB::run("SELECT id, name, size, seeders, leechers FROM torrents WHERE banned='no' AND visible = 'yes' ORDER BY id DESC LIMIT 5");
 
         $latestuploadsrecords = array();
         while ($latestuploadsrecord = $latestuploadsquery->fetch(PDO::FETCH_ASSOC)) {
@@ -27,5 +26,5 @@ if ($_SESSION['loggedin'] == true) {
 	<?php } ?>
 	<!-- end content -->
 
-<?php block::end();
+<?php Style::block_end();
 }

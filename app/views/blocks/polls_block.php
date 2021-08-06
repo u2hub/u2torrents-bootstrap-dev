@@ -1,8 +1,7 @@
 <?php
 
 if ($_SESSION['loggedin'] == true) {
-	$db = Database::instance();
-    Block::begin(Users::coloredname(Lang::T("POLL")));
+    Style::block_begin(Users::coloredname(Lang::T("POLL")));
     if (!function_exists("srt")) {
         function srt($a, $b)
         {
@@ -19,31 +18,31 @@ if ($_SESSION['loggedin'] == true) {
     if ($_SERVER["REQUEST_METHOD"] == "POST" && $_SESSION['loggedin'] && $_POST["act"] == "takepoll") {
         $choice = $_POST["choice"];
         if ($choice != "" && $choice < 256 && $choice == floor($choice)) {
-			$res = $db->run("SELECT * FROM polls ORDER BY added DESC LIMIT 1");
-			$arr = $res->fetch(PDO::FETCH_ASSOC) or show_error_msg(Lang::T("ERROR"), "No Poll", 1);
+			$res = DB::run("SELECT * FROM polls ORDER BY added DESC LIMIT 1");
+			$arr = $res->fetch(PDO::FETCH_ASSOC) or print("No Poll");
 
             $pollid = $arr["id"];
             $userid = $_SESSION["id"];
 
-			$res = $db->run("SELECT * FROM pollanswers WHERE pollid=? && userid=?", [$pollid, $userid]);
+			$res = DB::run("SELECT * FROM pollanswers WHERE pollid=? && userid=?", [$pollid, $userid]);
 			$arr = $res->fetch(PDO::FETCH_ASSOC);
 	
 			if ($arr){
-				show_error_msg(Lang::T("ERROR"), "You have already voted!", 0);
+				print("You have already voted!");
 			}else{
 	
-				$ins = $db->run("INSERT INTO pollanswers VALUES(?, ?, ?, ?)", [0, $pollid, $userid, $choice]);
+				$ins = DB::run("INSERT INTO pollanswers VALUES(?, ?, ?, ?)", [0, $pollid, $userid, $choice]);
 				if (!$ins)
-						show_error_msg(Lang::T("ERROR"), "An error occured. Your vote has not been counted.", 0);
+						print("An error occured. Your vote has not been counted.");
 			}
 		}else{
-			show_error_msg(Lang::T("ERROR"), "Please select an option.", 0);
+			print("Please select an option.");
 		}
 	}
 
     // Get current poll
     if ($_SESSION['loggedin']) {
-		$res = $db->run("SELECT * FROM polls ORDER BY added DESC LIMIT 1");
+		$res = DB::run("SELECT * FROM polls ORDER BY added DESC LIMIT 1");
 
 		if($pollok=($res->rowCount())) {
 			$arr = $res->fetch(PDO::FETCH_ASSOC);
@@ -57,7 +56,7 @@ if ($_SESSION['loggedin'] == true) {
         $arr["option15"], $arr["option16"], $arr["option17"], $arr["option18"], $arr["option19"]);
 
             // Check if user has already voted
-			$res = $db->run("SELECT * FROM pollanswers WHERE pollid=? AND userid=?", [$pollid, $userid]);
+			$res = DB::run("SELECT * FROM pollanswers WHERE pollid=? AND userid=?", [$pollid, $userid]);
 			$arr2 = $res->fetch(PDO::FETCH_ASSOC);
         }
 
@@ -78,7 +77,7 @@ if ($_SESSION['loggedin'] == true) {
             }
 
             // we reserve 255 for blank vote.
-    		$res = $db->run("SELECT selection FROM pollanswers WHERE pollid=$pollid AND selection < 20");
+    		$res = DB::run("SELECT selection FROM pollanswers WHERE pollid=$pollid AND selection < 20");
 
     		$tvotes = $res->rowCount();
 
@@ -166,7 +165,7 @@ if ($_SESSION['loggedin'] == true) {
         </label>
       </div>
 
-    	<button type='submit' class="btn btn-warning center-block" /><?php echo Lang::T("VOTE"); ?></button>
+    	<button type='submit' class="btn ttbtn center-block" /><?php echo Lang::T("VOTE"); ?></button>
       </form>
 
   	<?php }
@@ -184,5 +183,5 @@ if ($_SESSION['loggedin'] == true) {
     ?>
     <!-- end content -->
 
-<?php block::end();
+<?php Style::block_end();
 }

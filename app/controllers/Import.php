@@ -1,14 +1,11 @@
 <?php
 
-class Import extends Controller
+class Import
 {
 
     public function __construct()
     {
-        Auth::user();
-        $this->torrentModel = $this->model('Torrents');
-        $this->valid = new Validation();
-        $this->logsModel = $this->model('Logs');
+        $this->session = Auth::user(0, 2);
     }
 
     public function index()
@@ -25,7 +22,7 @@ class Import extends Controller
         closedir($dh);
         // check access and rights
         if ($_SESSION["edit_torrents"] != "yes") {
-            show_error_msg(Lang::T("ERROR"), Lang::T("ACCESS_DENIED"), 1);
+            Redirect::autolink(URLROOT, Lang::T("ACCESS_DENIED"));
         }
         //generate announce_urls[] from config.php
         $announce_urls = explode(",", strtolower(ANNOUNCELIST));
@@ -37,7 +34,7 @@ class Import extends Controller
             echo "<center>";
             //check form data
             $catid = (int) $_POST["type"];
-            if (!$this->valid->validId($catid)) {
+            if (!Validate::Id($catid)) {
                 $message = Lang::T("UPLOAD_NO_CAT");
             }
 
@@ -91,7 +88,9 @@ class Import extends Controller
                         $anon = "no";
                     }
 
-                    $ret = DB::run("INSERT INTO torrents (filename, owner, name, descr, category, added, info_hash, size, numfiles, save_as, announce, external, torrentlang, anon, last_action) VALUES (" . sqlesc($fname) . ", '" . $_SESSION['id'] . "', " . sqlesc($name) . ", " . sqlesc($descr) . ", '" . $catid . "', '" . TimeDate::get_date_time() . "', '" . $infohash . "', '" . $torrentsize . "', '" . $filecount . "', " . sqlesc($fname) . ", '" . $announce . "', '" . $external . "', '" . $langid . "','$anon', '" . TimeDate::get_date_time() . "')");
+                    $ret = DB::run("INSERT INTO torrents (filename, owner, name, descr, category, added, info_hash, size, numfiles, save_as, announce, external, torrentlang, anon, last_action) 
+                                  VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", 
+                                  [$fname, $_SESSION['id'], $name, $descr, $catid, TimeDate::get_date_time(), $infohash, $torrentsize, $filecount, $fname, $announce, $external, $langid, $anon, TimeDate::get_date_time()]);
                     $id = DB::lastInsertId();
 
                     if ($ret->errorCode() == 1062) {
@@ -110,34 +109,7 @@ class Import extends Controller
 
                     //EXTERNAL SCRAPE
                     if ($external == 'yes' && UPLOADSCRAPE) {
-                        $torrent = new Torrent(TORRENTDIR . "/$id.torrent");
-                        try {
-                            $scraped = $torrent->scrape();
-                        } catch (Exception $e) {
-                            $scraped = $torrent->errors();
-                            exit();
-                        }
-                        $myarray = array_shift($scraped);
-
-                        $seeders = $leechers = $completed = 0;
-                        if ($myarray['seeders'] > 0) {
-                            $seeders = $myarray['seeders'];
-                        }
-                        if ($myarray['leechers'] > 0) {
-                            $leechers = $myarray['leechers'];
-                        }
-                        if ($myarray['completed'] > 0) {
-                            $completed = $myarray['completed'];
-                        }
-                        if ($seeders !== null) {
-                            // Update the Torrent
-                            DB::run("
-                            UPDATE torrents
-                            SET leechers = ?, seeders = ?, times_completed = ?, last_action = ?, visible = ?
-                            WHERE id = ?",
-                                [$leechers, $seeders, $completed, TimeDate::get_date_time(), 'yes', $id]
-                            );
-                        }
+                        Tscraper::ScrapeId($id);
                     }
 
                     Logs::write("Torrent $id ($name) was Uploaded by $_SESSION[username]");
@@ -150,7 +122,7 @@ class Import extends Controller
                 Style::footer();
                 die;
             } else {
-                show_error_msg(Lang::T("UPLOAD_FAILED"), $message, 1);
+                Redirect::autolink(URLROOT, $message);
             }
 
         }

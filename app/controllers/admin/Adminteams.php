@@ -1,13 +1,10 @@
 <?php
-class Adminteams extends Controller
+class Adminteams
 {
 
     public function __construct()
     {
-        Auth::user();
-        Auth::isStaff();
-        // $this->userModel = $this->model('User');
-        $this->log = $this->model('Logs');
+        $this->session = Auth::user(_MODERATOR, 2);
     }
 
     public function index()
@@ -17,7 +14,7 @@ class Adminteams extends Controller
             'title' => Lang::T("TEAMS_MANAGEMENT"),
             'sql' => $sql
         ];
-        $this->view('teams/admin/index', $data, 'admin');
+        View::render('teams/admin/index', $data, 'admin');
     }
 
     public function add()
@@ -31,7 +28,7 @@ class Adminteams extends Controller
 
         if ($add == 'true') {
             if (!$team_name || !$teamownername || !$team_description) {
-                Session::flash('info', Lang::T("One or more fields left empty."), URLROOT . "/adminteams");
+                    Redirect::autolink(URLROOT . '/adminteams', Lang::T("One or more fields left empty."));
                 die;
             }
             $team_name = $team_name;
@@ -42,14 +39,14 @@ class Adminteams extends Controller
             $ar = $aa->fetch(PDO::FETCH_ASSOC);
             $team_owner = $ar["id"];
             if (!$team_owner) {
-                Session::flash('info', Lang::T("This user does not exist"), URLROOT . "/adminteams");
+                    Redirect::autolink(URLROOT . '/adminteams', Lang::T("This user does not exist"));
                 die;
             }
             $sql = DB::run("INSERT INTO teams SET name =?, owner =?, info =?, image =?, added =?", [$team_name, $team_owner, $team_description, $team_image, $added]);
             $tid = DB::lastInsertId();
             DB::run("UPDATE users SET team = $tid WHERE id= $team_owner");
         }
-        Session::flash('info', Lang::T("Team Added"), URLROOT."/adminteams");
+        Redirect::autolink(URLROOT . '/adminteams', Lang::T("Team Added"));
     }
 
     public function delete()
@@ -61,11 +58,11 @@ class Adminteams extends Controller
             $sql = DB::run("UPDATE users SET team=? WHERE team=?", ['0', $del]);
             $sql = DB::run("DELETE FROM teams WHERE id=? LIMIT 1", [$del]);
             Logs::write($_SESSION['username'] . " has deleted team id:$del");
-            Session::flash('info', Lang::T("Team Successfully Deleted!"), URLROOT . "/adminteams");
+            Redirect::autolink(URLROOT . '/adminteams', Lang::T("Team Successfully Deleted!"));
             die();
         }
         if ($del > 0) {
-            Session::flash('info', Lang::T("You and in the truth wish to delete team? ($team) ( <b><a href='".URLROOT."/adminteams/delete?del=$del&amp;team=$team&amp;sure=yes'>Yes!</a></b> / <b><a href='".URLROOT."/adminteams'>No!</a></b> )"), URLROOT . "/adminteams");
+            Redirect::autolink(URLROOT . '/adminteams', Lang::T("You and in the truth wish to delete team? ($team) ( <b><a href='".URLROOT."/adminteams/delete?del=$del&amp;team=$team&amp;sure=yes'>Yes!</a></b> / <b><a href='".URLROOT."/adminteams'>No!</a></b> )"));
             die();
         }
     }
@@ -87,7 +84,7 @@ class Adminteams extends Controller
         // Post/Get
         if ($edited == 1) {
             if (!$team_name || !$teamownername || !$team_info) {
-                Session::flash('info', 'One or more fields left empty.', URLROOT."/adminteams");
+                    Redirect::autolink(URLROOT . '/adminteams', 'One or more fields left empty.');
                 die;
             }
             $team_name = $team_name;
@@ -102,7 +99,7 @@ class Adminteams extends Controller
             if ($sql) {
                 $mss = "<b>Successfully Edited</b>[<a href='".URLROOT."/adminteams'>Back</a>]";
                 Logs::write($_SESSION['username'] . " has edited team ($team_name)");
-                Session::flash('info', $mss, URLROOT."/adminteams");
+                    Redirect::autolink(URLROOT . '/adminteams', $mss);
                 die();
             }
         }
@@ -116,7 +113,7 @@ class Adminteams extends Controller
                 'owner' => $owner,
                 'info' => $info,
             ];
-            $this->view('teams/admin/edit', $data, 'admin');
+            View::render('teams/admin/edit', $data, 'admin');
         }
 	}
 
@@ -128,6 +125,7 @@ class Adminteams extends Controller
             'title' => Lang::T("TEAMS_MANAGEMENT"),
             'sql' => $sql
         ];
-        $this->view('teams/admin/members', $data, 'admin');
+        View::render('teams/admin/members', $data, 'admin');
 	}
+
 }

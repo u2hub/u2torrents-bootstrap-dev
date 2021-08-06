@@ -1,25 +1,24 @@
 <?php
-class Stylesheet extends Controller
+class Stylesheet
 {
 
     public function __construct()
     {
-        Auth::user();
-        // $this->userModel = $this->model('User');
+        $this->session = Auth::user(0, 2);
     }
 
     public function index()
     {
         $updateset = array();
-        $stylesheet = $_POST['stylesheet'];
-        $language = $_POST['language'];
+        $stylesheet = Input::get('stylesheet');
+        $language = Input::get('language');
         $updateset[] = "stylesheet = '$stylesheet'";
         $updateset[] = "language = '$language'";
         if (count($updateset)) {
-            DB::run("UPDATE `users` SET " . implode(', ', $updateset) . " WHERE `id` =?", [$_SESSION["id"]]);
+            Users::updateset($updateset, $_SESSION['id']);
         }
         if (empty($_SERVER["HTTP_REFERER"])) {
-            Redirect::to(URLROOT."/home");
+            Redirect::to(URLROOT);
             return;
         }
         Redirect::to($_SERVER["HTTP_REFERER"]);

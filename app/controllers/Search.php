@@ -1,13 +1,11 @@
 <?php
 
-class Search extends Controller
+class Search
 {
 
     public function __construct()
     {
-        Auth::user();
-        $this->torrentModel = $this->model('Torrents');
-        $this->valid = new Validation();
+        $this->session = Auth::user(0, 2);
     }
 
     public function index()
@@ -15,7 +13,7 @@ class Search extends Controller
         //check permissions
         if (MEMBERSONLY) {
             if ($_SESSION["view_torrents"] == "no") {
-                show_error_msg(Lang::T("ERROR"), Lang::T("NO_TORRENT_VIEW"), 1);
+                Redirect::autolink(URLROOT, Lang::T("NO_TORRENT_VIEW"));
             }
         }
 
@@ -34,7 +32,7 @@ class Search extends Controller
 
         $wherecatina = array();
         $wherecatin = "";
-        $res = $this->torrentModel->getCatById();
+        $res = Torrents::getCatById();
         while ($row = $res->fetch(PDO::FETCH_LAZY)) {
             if (isset($_GET["c$row[id]"])) {
                 $wherecatina[] = $row['id'];
@@ -162,7 +160,7 @@ class Search extends Controller
         $orderby = "ORDER BY torrents." . $column . " " . $ascdesc;
         $pagerlink = "sort=" . $_GET['sort'] . "&amp;order=" . $_GET['order'] . "&amp;";
 
-        if ($this->valid->validId($_GET["page"] ?? '')) {
+        if (Validate::Id($_GET["page"] ?? '')) {
             $thisurl .= "page=$_GET[page]&amp;";
         }
 
@@ -178,7 +176,7 @@ class Search extends Controller
         }
 
         //GET NUMBER FOUND FOR PAGER
-        $count = $this->torrentModel->getTorrentWhere($where, $parent_check);
+        $count = Torrents::getTorrentWhere($where, $parent_check);
 
         if (!$count && isset($cleansearchstr)) {
             $wherea = $wherebase;
@@ -196,7 +194,8 @@ class Search extends Controller
 
                 $ssa = array();
                 foreach (array("torrents.name") as $sss) {
-                    $ssa[] = "$sss LIKE '%" . sqlwildcardesc($searchss) . "%'";
+                    //$ssa[] = "$sss LIKE '%" . sqlwildcardesc($searchss) . "%'";
+                    $ssa[] = "$sss LIKE '%" . $searchss . "%'";
                 }
 
                 $wherea[] = "(" . implode(" OR ", $ssa) . ")";
@@ -229,7 +228,7 @@ class Search extends Controller
 
             //SEARCH QUERIES!
             list($pagertop, $pagerbottom, $limit) = pager(20, $count, "search?" . $addparam);
-            $res = $this->torrentModel->getTorrentByCat($where, $parent_check, $orderby, $limit);
+            $res = Torrents::getTorrentByCat($where, $parent_check, $orderby, $limit);
 
         } else {
             unset($res);
@@ -245,10 +244,10 @@ class Search extends Controller
 
         // get all parent cats
         echo "<center><b>" . Lang::T("CATEGORIES") . ":</b> ";
-        $catsquery = $this->torrentModel->getCatByParent();
-        echo " - <a href='".URLROOT."/search/browse'>" . Lang::T("SHOWALL") . "</a>";
+        $catsquery = Torrents::getCatByParent();
+        echo " - <a href='" . URLROOT . "/search/browse'>" . Lang::T("SHOWALL") . "</a>";
         while ($catsrow = $catsquery->fetch(PDO::FETCH_ASSOC)) {
-            echo " - <a href='".URLROOT."/search/browse?parent_cat=" . urlencode($catsrow['parent_cat']) . "'>$catsrow[parent_cat]</a>";
+            echo " - <a href='" . URLROOT . "/search/browse?parent_cat=" . urlencode($catsrow['parent_cat']) . "'>$catsrow[parent_cat]</a>";
         }
         echo "</center>";
 
@@ -261,22 +260,22 @@ class Search extends Controller
             <tr align='right'>
             <?php
         $i = 0;
-        $cats = $this->torrentModel->getCatByParentName();
+        $cats = Torrents::getCatByParentName();
         while ($cat = $cats->fetch(PDO::FETCH_ASSOC)) {
             $catsperrow = 5;
             print(($i && $i % $catsperrow == 0) ? "</tr><tr align='right'>" : "");
-            print("<td style=\"padding-bottom: 2px;padding-left: 2px\"><a href=".URLROOT."/search/browse?cat={$cat["id"]}'>" . htmlspecialchars($cat["parent_cat"]) . " - " . htmlspecialchars($cat["name"]) . "</a> <input name='c{$cat["id"]}' type=\"checkbox\" " . (in_array($cat["id"], $wherecatina) || $_GET["cat"] == $cat["id"] ? "checked='checked' " : "") . "value='1' /></td>\n");
+            print("<td style=\"padding-bottom: 2px;padding-left: 2px\"><a href=" . URLROOT . "/search/browse?cat={$cat["id"]}'>" . htmlspecialchars($cat["parent_cat"]) . " - " . htmlspecialchars($cat["name"]) . "</a> <input name='c{$cat["id"]}' type=\"checkbox\" " . (in_array($cat["id"], $wherecatina) || $_GET["cat"] == $cat["id"] ? "checked='checked' " : "") . "value='1' /></td>\n");
             $i++;
         }
         echo "</tr></table>";
 
         //if we are browsing, display all subcats that are in same cat
         if ($parent_cat) {
-            echo "<br /><br /><b>" . Lang::T("YOU_ARE_IN") . ":</b> <a href=".URLROOT."/search/browse?parent_cat=$parent_cat'>$parent_cat</a><br /><b>" . Lang::T("SUB_CATS") . ":</b> ";
-            $subcatsquery = $this->torrentModel->getSubCatByParentName($parent_cat);
+            echo "<br /><br /><b>" . Lang::T("YOU_ARE_IN") . ":</b> <a href=" . URLROOT . "/search/browse?parent_cat=$parent_cat'>$parent_cat</a><br /><b>" . Lang::T("SUB_CATS") . ":</b> ";
+            $subcatsquery = Torrents::getSubCatByParentName($parent_cat);
             while ($subcatsrow = $subcatsquery->fetch(PDO::FETCH_ASSOC)) {
                 $name = $subcatsrow['name'];
-                echo " - <a href=".URLROOT."/search/browse?cat=$subcatsrow[id]'>$name</a>";
+                echo " - <a href=" . URLROOT . "/search/browse?cat=$subcatsrow[id]'>$name</a>";
             }
         }
 
@@ -354,7 +353,7 @@ class Search extends Controller
         ?>
                 <?php echo $langdropdown ?>
                 </select>
-                <button type='submit' class='btn btn-sm btn-warning'><?php print Lang::T("SEARCH");?></button>
+                <button type='submit' class='btn btn-sm ttbtn'><?php print Lang::T("SEARCH");?></button>
                 <br />
                 </form>
                 <?php print Lang::T("SEARCH_RULES");?><br />
@@ -382,12 +381,8 @@ class Search extends Controller
             torrenttable($res);
             print($pagerbottom);
         } else {
-            print("<div class='f-border'>");
-            print("<div class='f-cat' width='100%'>" . Lang::T("NOTHING_FOUND") . "</div>");
-            print("<div>");
-            print Lang::T("NO_RESULTS");
-            print("</div>");
-            print("</div>");
+            print(Lang::T("NOTHING_FOUND") . "&nbsp;&nbsp;");
+            print Lang::T("NO_UPLOADS");
         }
         if ($_SESSION['loggedin'] == true) {
             DB::run("UPDATE users SET last_browse=" . TimeDate::gmtime() . " WHERE id=$_SESSION[id]");
@@ -396,19 +391,18 @@ class Search extends Controller
         Style::footer();
     }
 
-
     public function today()
     {
         //check permissions
         if (MEMBERSONLY) {
             if ($_SESSION["view_torrents"] == "no") {
-                show_error_msg(Lang::T("ERROR"), Lang::T("NO_TORRENT_VIEW"), 1);
+                Redirect::autolink(URLROOT, Lang::T("NO_TORRENT_VIEW"));
             }
         }
 
         $date_time = TimeDate::get_date_time(TimeDate::gmtime() - (3600 * 24)); // the 24 is the hours you want listed
-        $catresult = $this->torrentModel->getCatSort();
-        
+        $catresult = Torrents::getCatSort();
+
         Style::header(Lang::T("TODAYS_TORRENTS"));
         Style::begin(Lang::T("TODAYS_TORRENTS"));
         while ($cat = $catresult->fetch(PDO::FETCH_ASSOC)) {
@@ -416,10 +410,10 @@ class Search extends Controller
             $where = "WHERE banned = 'no' AND category='$cat[id]' AND visible='yes'";
             $limit = "LIMIT 10"; //Limit
 
-            $res = $this->torrentModel->getCatSortAll($where, $date_time, $orderby, $limit);
+            $res = Torrents::getCatSortAll($where, $date_time, $orderby, $limit);
             $numtor = $res->rowCount();
             if ($numtor != 0) {
-                echo "<b><a href=".URLROOT."/torrent/browse?cat=" . $cat["id"] . "'>$cat[name]</a></b>";
+                echo "<b><a href=" . URLROOT . "/torrent/browse?cat=" . $cat["id"] . "'>$cat[name]</a></b>";
                 torrenttable($res);
                 echo "<br />";
             }
@@ -433,7 +427,7 @@ class Search extends Controller
         //check permissions
         if (MEMBERSONLY) {
             if ($_SESSION["view_torrents"] == "no") {
-                show_error_msg(Lang::T("ERROR"), Lang::T("NO_TORRENT_VIEW"), 1);
+                Redirect::autolink(URLROOT, Lang::T("NO_TORRENT_VIEW"));
             }
         }
         //get http vars
@@ -460,7 +454,7 @@ class Search extends Controller
         $where = implode(" AND ", $wherea);
         $wherecatina = array();
         $wherecatin = "";
-        $res = $this->torrentModel->getCatById();
+        $res = Torrents::getCatById();
         while ($row = $res->fetch(PDO::FETCH_LAZY)) {
             if ($_GET["c$row[id]"]) {
                 $wherecatina[] = $row["id"];
@@ -518,7 +512,7 @@ class Search extends Controller
         }
 
         //Get Total For Pager
-        $count = $this->torrentModel->getCatwhere($where);
+        $count = Torrents::getCatwhere($where);
 
         //get sql info
         if ($count) {
@@ -534,10 +528,10 @@ class Search extends Controller
 
         // get all parent cats
         echo "<center><b>" . Lang::T("CATEGORIES") . ":</b> ";
-        $catsquery = $this->torrentModel->getCatByParent();
-        echo " - <a href=".URLROOT."/search/browse'>" . Lang::T("SHOW_ALL") . "</a>";
+        $catsquery = Torrents::getCatByParent();
+        echo " - <a href=" . URLROOT . "/search/browse'>" . Lang::T("SHOW_ALL") . "</a>";
         while ($catsrow = $catsquery->fetch(PDO::FETCH_ASSOC)) {
-            echo " - <a href=".URLROOT."/search/browse/?parent_cat=" . urlencode($catsrow['parent_cat']) . "'>$catsrow[parent_cat]</a>";
+            echo " - <a href=" . URLROOT . "/search/browse/?parent_cat=" . urlencode($catsrow['parent_cat']) . "'>$catsrow[parent_cat]</a>";
         }
         ?>
                 <br /><br />
@@ -546,11 +540,11 @@ class Search extends Controller
                 <tr align='right'>
                 <?php
         $i = 0;
-        $cats = $this->torrentModel->getCatByParentName();
+        $cats = Torrents::getCatByParentName();
         while ($cat = $cats->fetch(PDO::FETCH_ASSOC)) {
             $catsperrow = 5;
             print(($i && $i % $catsperrow == 0) ? "</tr><tr align='right'>" : "");
-            print("<td style=\"padding-bottom: 2px;padding-left: 2px\"><a href=".URLROOT."/search/browse?cat={$cat["id"]}'>" . htmlspecialchars($cat["parent_cat"]) . " - " . htmlspecialchars($cat["name"]) . "</a> <input name='c{$cat["id"]}' type=\"checkbox\" " . (in_array($cat["id"], $wherecatina) || $_GET["cat"] == $cat["id"] ? "checked='checked' " : "") . "value='1' /></td>\n");
+            print("<td style=\"padding-bottom: 2px;padding-left: 2px\"><a href=" . URLROOT . "/search/browse?cat={$cat["id"]}'>" . htmlspecialchars($cat["parent_cat"]) . " - " . htmlspecialchars($cat["name"]) . "</a> <input name='c{$cat["id"]}' type=\"checkbox\" " . (in_array($cat["id"], $wherecatina) || $_GET["cat"] == $cat["id"] ? "checked='checked' " : "") . "value='1' /></td>\n");
             $i++;
         }
         echo "</tr><tr align='center'><td colspan='$catsperrow' align='center'><input type='submit' value='" . Lang::T("GO") . "' /></td></tr>";
@@ -559,15 +553,15 @@ class Search extends Controller
         //if we are browsing, display all subcats that are in same cat
         if ($parent_cat) {
             $thisurl .= "parent_cat=" . urlencode($parent_cat) . "&amp;";
-            echo "<br /><br /><b>" . Lang::T("YOU_ARE_IN") . ":</b> <a href='".URLROOT."/search/browse?parent_cat=" . urlencode($parent_cat) . "'>" . htmlspecialchars($parent_cat) . "</a><br /><b>" . Lang::T("SUB_CATS") . ":</b> ";
+            echo "<br /><br /><b>" . Lang::T("YOU_ARE_IN") . ":</b> <a href='" . URLROOT . "/search/browse?parent_cat=" . urlencode($parent_cat) . "'>" . htmlspecialchars($parent_cat) . "</a><br /><b>" . Lang::T("SUB_CATS") . ":</b> ";
             $subcatsquery = DB::run("SELECT id, name, parent_cat FROM categories WHERE parent_cat=" . sqlesc($parent_cat) . " ORDER BY name");
             while ($subcatsrow = $subcatsquery->fetch(PDO::FETCH_ASSOC)) {
                 $name = $subcatsrow['name'];
-                echo " - <a href=".URLROOT."/search/browse?cat=$subcatsrow[id]'>$name</a>";
+                echo " - <a href=" . URLROOT . "/search/browse?cat=$subcatsrow[id]'>$name</a>";
             }
         }
 
-        if ($this->valid->validId($_GET["page"])) {
+        if (Validate::Id($_GET["page"])) {
             $thisurl .= "page=$_GET[page]&amp;";
         }
 
@@ -593,12 +587,8 @@ class Search extends Controller
             torrenttable($res);
             print($pagerbottom);
         } else {
-            print("<div class='f-border'>");
-            print("<div class='f-cat' width='100%'>" . Lang::T("NOTHING_FOUND") . "</div>");
-            print("<div>");
+            print(Lang::T("NOTHING_FOUND") . "&nbsp;&nbsp;");
             print Lang::T("NO_UPLOADS");
-            print("</div>");
-            print("</div>");
         }
         if ($_SESSION) {
             DB::run("UPDATE users SET last_browse=? WHERE id=?", [TimeDate::gmtime(), $_SESSION['id']]);
@@ -607,22 +597,21 @@ class Search extends Controller
         Style::footer();
     }
 
-        
     public function needseed()
     {
         if ($_SESSION["view_torrents"] == "no") {
-            Session::flash('info', Lang::T("NO_TORRENT_VIEW"), URLROOT."/home");
+            Redirect::autolink(URLROOT, Lang::T("NO_TORRENT_VIEW"));
         }
         $res = DB::run("SELECT torrents.id, torrents.name, torrents.owner, torrents.external, torrents.size, torrents.seeders, torrents.leechers, torrents.times_completed, torrents.added, users.username FROM torrents LEFT JOIN users ON torrents.owner = users.id WHERE torrents.banned = 'no' AND torrents.leechers > 0 AND torrents.seeders <= 1 ORDER BY torrents.seeders");
         if ($res->rowCount() == 0) {
-            Session::flash('info', Lang::T("NO_TORRENT_NEED_SEED"), URLROOT."/home");
+            Redirect::autolink(URLROOT, Lang::T("NO_TORRENT_NEED_SEED"));
         }
         $title = Lang::T("TORRENT_NEED_SEED");
         $data = [
             'title' => $title,
-            'res' => $res
+            'res' => $res,
         ];
-        $this->view('torrent/needseed', $data, 'user');
+        View::render('torrent/needseed', $data, 'user');
     }
 
 }

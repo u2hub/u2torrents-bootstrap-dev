@@ -1,20 +1,16 @@
 <?php
-class Adminwarning extends Controller
+class Adminwarning
 {
 
     public function __construct()
     {
-        Auth::user();
-        Auth::isStaff();
-        // $this->userModel = $this->model('User');
-        $this->logsModel = $this->model('Logs');
-        $this->valid = new Validation();
+        $this->session = Auth::user(_MODERATOR, 2);
     }
 
     public function index()
     {
         $count = get_row_count("users", "WHERE enabled = 'yes' AND status = 'confirmed' AND warned = 'yes'");
-        list($pagertop, $pagerbottom, $limit) = pager(25, $count, '/adminwarning?');
+        list($pagertop, $pagerbottom, $limit) = pager(25, $count, URLROOT.'/adminwarning?');
         $res = DB::run("SELECT `id`, `username`, `class`, `added`, `last_access` FROM `users` WHERE `enabled` = 'yes' AND `status` = 'confirmed' AND `warned` = 'yes' ORDER BY `added` DESC $limit");
         $title = "Warned Users";
         $data = [
@@ -23,7 +19,7 @@ class Adminwarning extends Controller
             'count' => $count,
             'res' => $res,
         ];
-        $this->view('warning/admin/warned', $data, 'admin');
+        View::render('warning/admin/warned', $data, 'admin');
     }
 
     public function submit()
@@ -36,7 +32,7 @@ class Adminwarning extends Controller
             }
         } else {
             if (!@count($_POST['warned'])) {
-                show_error_msg(Lang::T("ERROR"), Lang::T("NOTHING_SELECTED"), 1);
+                Redirect::autolink(URLROOT . "/adminwarning", Lang::T("NOTHING_SELECTED"));
             }
             $ids = array_map("intval", $_POST["warned"]);
             $ids = implode(", ", $ids);
@@ -45,4 +41,5 @@ class Adminwarning extends Controller
         }
         Redirect::autolink(URLROOT . "/adminwarning", "Entries Confirmed");
     }
+    
 }

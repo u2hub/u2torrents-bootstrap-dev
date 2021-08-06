@@ -1,27 +1,23 @@
 <?php
-class Admintorrents extends Controller
+class Admintorrents
 {
 
     public function __construct()
     {
-        Auth::user();
-        Auth::isStaff();
-        // $this->userModel = $this->model('User');
-        $this->logsModel = $this->model('Logs');
-        $this->valid = new Validation();
+        $this->session = Auth::user(_MODERATOR, 2);
     }
 
     public function index()
     {
         if ($_POST["do"] == "delete") {
             if (!@count($_POST["torrentids"])) {
-                show_error_msg(Lang::T("ERROR"), "Nothing selected click <a href='admintorrents'>here</a> to go back.", 1);
+                Redirect::autolink(URLROOT . "/admintorrents", "Nothing selected click <a href='admintorrents'>here</a> to go back.");
             }
             foreach ($_POST["torrentids"] as $id) {
                 deletetorrent(intval($id));
                 Logs::write("Torrent ID $id was deleted by $_SESSION[username]");
             }
-            show_error_msg("Torrents Deleted", "Go <a href='admintorrents'>back</a>?", 1);
+            Redirect::autolink(URLROOT . "/admintorrents", "Go <a href='admintorrents'>back</a>?");
         }
         $search = (!empty($_GET["search"])) ? htmlspecialchars(trim($_GET["search"])) : "";
         $where = ($search == "") ? "" : "WHERE name LIKE " . sqlesc("%$search%") . "";
@@ -36,7 +32,7 @@ class Admintorrents extends Controller
             'res' => $res,
             'search' => $search,
         ];
-        $this->view('torrent/admin/torrentmanage', $data, 'admin');
+        View::render('torrent/admin/torrentmanage', $data, 'admin');
     }
 
     public function free()
@@ -59,6 +55,7 @@ class Admintorrents extends Controller
             'resqq' => $resqq,
             'pagerbottom' => $pagerbottom,
         ];
-        $this->view('torrent/admin/freetorrent', $data, 'admin');
+        View::render('torrent/admin/freetorrent', $data, 'admin');
     }
+    
 }

@@ -1,18 +1,18 @@
 <?php
-class Recover extends Controller
+class Recover
 {
 
     public function __construct()
     {
-        $this->userModel = $this->model('User');
-        $this->pdo = new Database();
-        $this->valid = new Validation();
+        $this->session = Auth::user(0, 0);
     }
 
     public function index()
     {
-        $data = [];
-        $this->view('user/recover', $data, 'user');
+        $data = [
+            'title' => 'Recover Account',
+        ];
+        View::render('user/recover', $data, 'user');
     }
 
     public function submit()
@@ -21,24 +21,24 @@ class Recover extends Controller
         (new Captcha)->response($_POST['g-recaptcha-response']);
         if (Input::exist()) {
             $email = Input::get("email");
-            if (!$this->valid->validEmail($email)) {
-                Session::flash('info', Lang::T("EMAIL_ADDRESS_NOT_VAILD"), URLROOT . "/home");
+            if (!Validate::Email($email)) {
+                Redirect::autolink(URLROOT . "/home", Lang::T("EMAIL_ADDRESS_NOT_VAILD"));
             } else {
-                $arr = $this->userModel->getIdEmailByEmail($email);
+                $arr = Users::getIdEmailByEmail($email);
                 if (!$arr) {
-                    Session::flash('info', Lang::T("EMAIL_ADDRESS_NOT_FOUND"), URLROOT . "/home");
+                    Redirect::autolink(URLROOT . "/home", Lang::T("EMAIL_ADDRESS_NOT_FOUND"));
                 }
                 if ($arr) {
-                    $sec = mksecret();
-                    $id = $arr->id;
-                    $username = $arr->username; // 06/01
+                    $sec = Helper::mksecret();
+                    $id = $arr['id'];
+                    $username = $arr['username']; // 06/01
                     $emailmain = SITEEMAIL;
                     $url = URLROOT;
                     $body = Lang::T("SOMEONE_FROM") . " " . $_SERVER["REMOTE_ADDR"] . " " . Lang::T("MAILED_BACK") . " ($email) " . Lang::T("BE_MAILED_BACK") . " \r\n\r\n " . Lang::T("ACCOUNT_INFO") . " \r\n\r\n " . Lang::T("USERNAME") . ": " . $username . " \r\n " . Lang::T("CHANGE_PSW") . "\n\n$url/recover/confirm?id=$id&secret=$sec\n\n\n" . $url . "\r\n";
                     $TTMail = new TTMail();
                     $TTMail->Send($email, Lang::T("ACCOUNT_DETAILS"), $body, "", "-f$emailmain");
-                    $res2 = $this->userModel->setSecret($sec, $email);
-                    Session::flash('info', sprintf(Lang::T('MAIL_RECOVER'), htmlspecialchars($email)), URLROOT . "/home");
+                    Users::setSecret($sec, $email);
+                    Redirect::autolink(URLROOT . "/home", sprintf(Lang::T('MAIL_RECOVER'), htmlspecialchars($email)));
                 }
             }
         }
@@ -46,33 +46,35 @@ class Recover extends Controller
 
     public function confirm()
     {
-        $data = [];
-        $this->view('user/confirm', $data, 'user');
+        $data = [
+            'title' => 'Recover Account'];
+        View::render('user/confirm', $data, 'user');
     }
 
     public function ok()
     {
         $id = Input::get("id");
         $secret = Input::get("secret");
-        if ($this->valid->validId(Input::get("id")) && strlen(Input::get("secret")) == 20) {
+        if (Validate::Id(Input::get("id")) && strlen(Input::get("secret")) == 20) {
             $password = Input::get("password");
             $password1 = Input::get("password1");
             if (empty($password) || empty($password1)) {
-                Session::flash('info', Lang::T("NO_EMPTY_FIELDS"), URLROOT . "/home");
+                Redirect::autolink(URLROOT . "/home", Lang::T("NO_EMPTY_FIELDS"));
             } elseif ($password != $password1) {
-                Session::flash('info', Lang::T("PASSWORD_NO_MATCH"), URLROOT . "/home");
+                Redirect::autolink(URLROOT . "/home", Lang::T("PASSWORD_NO_MATCH"));
             } else {
-                $count = $this->pdo->run("SELECT COUNT(*) FROM users WHERE id=? AND secret=?", [$id, $secret])->fetchColumn();
+                $count = DB::run("SELECT COUNT(*) FROM users WHERE id=? AND secret=?", [$id, $secret])->fetchColumn();
                 if ($count != 1) {
-                    Session::flash('info', Lang::T("NO_SUCH_USER"), URLROOT . "/home");
+                    Redirect::autolink(URLROOT . "/home", Lang::T("NO_SUCH_USER"));
                 }
-                $newsec = mksecret();
+                $newsec = Helper::mksecret();
                 $wantpassword = password_hash($password, PASSWORD_BCRYPT);
-                $stmt = $this->userModel->recoverUpdate($wantpassword, $newsec, $id, $secret);
-                Session::flash('info', Lang::T("PASSWORD_CHANGED_OK"), URLROOT . "/home");
+                $stmt = Users::recoverUpdate($wantpassword, $newsec, $id, $secret);
+                Redirect::autolink(URLROOT . "/home", Lang::T("PASSWORD_CHANGED_OK"));
             }
         } else {
-            Session::flash('info', Lang::T("Wrong Imput"), URLROOT . "/home");
+            Redirect::autolink(URLROOT . "/home", Lang::T("Wrong Imput"));
         }
     }
+    
 }

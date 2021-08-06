@@ -1,12 +1,10 @@
 <?php
-class Adminclient extends Controller
+class Adminclient
 {
 
     public function __construct()
     {
-        Auth::user();
-        Auth::isStaff();
-        // $this->userModel = $this->model('User');
+        $this->session = Auth::user(_MODERATOR, 2);
     }
 
     public function index()
@@ -19,7 +17,7 @@ class Adminclient extends Controller
             'title' => Lang::T("Clients"),
             'res11' => $res11,
         ];
-        $this->view('client/index', $data, 'admin');
+        View::render('client/index', $data, 'admin');
     }
 
     public function banned()
@@ -35,6 +33,7 @@ class Adminclient extends Controller
             'title' => Lang::T("Clients"),
             'sql' => $sql,
         ];
-        $this->view('client/banned', $data, 'admin');
+        View::render('client/banned', $data, 'admin');
     }
+
 }

@@ -1,14 +1,10 @@
 <?php
-class Adminshoutbox extends Controller
+class Adminshoutbox
 {
 
     public function __construct()
     {
-        Auth::user();
-        Auth::isStaff();
-        // $this->userModel = $this->model('User');
-        $this->logsModel = $this->model('Logs');
-        $this->valid = new Validation();
+        $this->session = Auth::user(_MODERATOR, 2);
     }
 
     public function history()
@@ -18,7 +14,7 @@ class Adminshoutbox extends Controller
             'title' => 'Staff History',
             'sql' => $result,
         ];
-        $this->view('shoutbox/history', $data, 'admin');
+        View::render('shoutbox/history', $data, 'admin');
     }
 
     public function index()
@@ -26,7 +22,7 @@ class Adminshoutbox extends Controller
         $data = [
             'title' => 'Staff Chat',
         ];
-        $this->view('shoutbox/admin/staffbox', $data, 'admin');
+        View::render('shoutbox/admin/staffbox', $data, 'admin');
     }
 
     public function loadchat()
@@ -71,7 +67,7 @@ class Adminshoutbox extends Controller
                         <form method="POST" action="<?php echo URLROOT; ?>/shoutbox/edit?id=<?php echo $row['msgid']; ?>">
                         <input class="form-control" type="text" name="message" value="<?php echo $row['message'] ?>" size="60" /><br>
                         <!-- The submit button -->
-                        <center><input class="btn btn-sm btn-warning"  type="submit" value='<?php echo Lang::T("SUBMIT"); ?>'></center>
+                        <center><input class="btn btn-sm ttbtn"  type="submit" value='<?php echo Lang::T("SUBMIT"); ?>'></center>
                         </form>
                     </div>
                     </div>
@@ -117,6 +113,7 @@ class Adminshoutbox extends Controller
         $data = [
             'title' => Lang::T("CLEAR_SHOUTBOX"),
         ];
-        $this->view('shoutbox/admin/clear', $data, 'admin');
+        View::render('shoutbox/admin/clear', $data, 'admin');
     }
+
 }

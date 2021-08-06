@@ -1,5 +1,4 @@
 <?php
-$db = Database::instance();
 $date_time = TimeDate::get_date_time(TimeDate::gmtime() - (3600 * 24)); // the 24hrs is the hours you want listed
 $registered = number_format(get_row_count("users"));
 $ncomments = number_format(get_row_count("comments"));
@@ -8,24 +7,24 @@ $ntor = number_format(get_row_count("torrents"));
 $totaltoday = number_format(get_row_count("users", "WHERE users.last_access>='$date_time'"));
 $regtoday = number_format(get_row_count("users", "WHERE users.added>='$date_time'"));
 $todaytor = number_format(get_row_count("torrents", "WHERE torrents.added>='$date_time'"));
-$guests = number_format(Helper::getGuests());
+$guests = number_format(Guest::getGuests());
 $seeders = get_row_count("peers", "WHERE seeder='yes'");
 $leechers = get_row_count("peers", "WHERE seeder='no'");
 $members = number_format(get_row_count("users", "WHERE UNIX_TIMESTAMP('" . TimeDate::get_date_time() . "') - UNIX_TIMESTAMP(users.last_access) < 900"));
 $totalonline = $members + $guests;
 
-$result = $db->run("SELECT SUM(downloaded) AS totaldl FROM users");
+$result = DB::run("SELECT SUM(downloaded) AS totaldl FROM users");
 while ($row = $result->fetch(PDO::FETCH_LAZY)) {
     $totaldownloaded = $row["totaldl"];
 }
 
-$result = $db->run("SELECT SUM(uploaded) AS totalul FROM users");
+$result = DB::run("SELECT SUM(uploaded) AS totalul FROM users");
 while ($row = $result->fetch(PDO::FETCH_LAZY)) {
     $totaluploaded = $row["totalul"];
 }
 $localpeers = $leechers + $seeders;
 if ($_SESSION['loggedin'] === true && $_SESSION["edit_users"] == "yes") {
-	Block::begin(Lang::T("STATS"));
+	Style::block_begin(Lang::T("STATS"));
     ?>
 
 		<!-- content -->
@@ -78,6 +77,6 @@ if ($_SESSION["edit_users"] == "no") {
 
        <!-- end content -->
 
-   <?php block::end();
+   <?php Style::block_end();
 }
 ?>

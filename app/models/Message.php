@@ -1,14 +1,8 @@
 <?php
 class Message
 {
-    private $db;
 
-    public function __construct()
-    {
-        $this->db = new Database;
-    }
-
-    public function countmsg()
+    public static function countmsg()
     {
         $res = DB::run("SELECT COUNT(*), COUNT(`unread` = 'yes') FROM messages WHERE `receiver` = $_SESSION[id] AND `location` IN ('in','both')");
         $res = DB::run("SELECT COUNT(*) FROM messages WHERE receiver=" . $_SESSION["id"] . " AND `location` IN ('in','both')");
@@ -32,12 +26,57 @@ class Message
         return $arr;
     }
 
-    public function insertmessage($sender, $receiver, $added, $subject, $msg, $unread, $location)
+    public static function insertmessage($sender, $receiver, $added, $subject, $msg, $unread, $location, $poster = 0)
     {
         DB::run("INSERT INTO `messages`
-        (`sender`, `receiver`, `added`, `subject`, `msg`, `unread`, `location`)
-                 VALUES (?,?,?,?,?,?,?)",
-            [$sender, $receiver, $added, $subject, $msg, $unread, $location]
+        (`sender`, `receiver`, `added`, `subject`, `msg`, `poster`, `unread`, `location`)
+                 VALUES (?,?,?,?,?,?,?,?)",
+            [$sender, $receiver, $added, $subject, $msg, $poster, $unread, $location]
         );
+    }
+
+    public static function updateRead($id, $receiver)
+    {
+        DB::run("UPDATE messages SET `unread` = 'no' 
+               WHERE `id` = $id AND `receiver` = $receiver");
+    }
+
+    public static function getallmsg($id)
+    {
+        $res = DB::run('SELECT * FROM messages WHERE id = ?', [$id])->fetch(PDO::FETCH_ASSOC);
+        return $res;
+    }
+    
+    public static function updateMessage($msg, $id)
+    {
+        DB::run('UPDATE messages SET msg = ? WHERE id = ?', [$msg, $id]);
+    }
+
+    public static function msgPagination($type)
+    {
+        switch ($type) {
+            case 'inbox':
+                $where = "`receiver` = $_SESSION[id] AND `location` IN ('in','both') ORDER BY added DESC";
+                $count = DB::run("SELECT COUNT(*) FROM messages WHERE $where")->fetchColumn();
+                list($pagertop, $pagerbottom, $limit) = pager(25, $count, URLROOT."/messages?type=inbox&");
+                break;
+            case 'outbox':
+                $where = "`sender` = $_SESSION[id] AND `location` IN ('out','both') ORDER BY added DESC";
+                $count= DB::run("SELECT COUNT(*) FROM messages WHERE $where")->fetchColumn();
+                list($pagertop, $pagerbottom, $limit) = pager(25, $count, URLROOT."/messages?type=outbox&");
+                break;
+            case 'templates':
+                $where = "`sender` = $_SESSION[id] AND `location` = 'template' ORDER BY added DESC";
+                $count= DB::run("SELECT COUNT(*) FROM messages WHERE $where")->fetchColumn();
+                list($pagertop, $pagerbottom, $limit) = pager(25, $count, URLROOT."/messages?type=templates&");
+                break;
+            case 'draft':
+                $where = "`sender` = $_SESSION[id] AND `location` = 'draft' ORDER BY added DESC";
+                $count = DB::run("SELECT COUNT(*) FROM messages WHERE $where")->fetchColumn();
+                list($pagertop, $pagerbottom, $limit) = pager(25, $count, URLROOT."/messages?type=draft&");
+                break;
+            }
+        $arr = ['pagertop' => $pagertop, 'pagerbottom' => $pagerbottom, 'limit' => $limit, 'where' => $where];
+        return $arr;
     }
 }

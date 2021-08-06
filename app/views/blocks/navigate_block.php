@@ -1,14 +1,14 @@
 <?php
 if ($_SESSION['loggedin'] == true) {
-    Block::begin(Lang::T("NAVIGATION"));
+    Style::block_begin(Lang::T("NAVIGATION"));
     ?>
 
     <div class="list-group">
 	<a href='<?php echo URLROOT; ?>/index' class="list-group-item"><i class="fa fa-chevron-right"></i> <?php echo Lang::T("HOME"); ?></a>
+	<?php
+if ($_SESSION["view_torrents"] == "yes") {?>
 	<a href='<?php echo URLROOT; ?>/topten' class="list-group-item"><i class="fa fa-chevron-right"></i> <?php echo Lang::T("Top 10"); ?></a>
-    <?php
-if ($_SESSION["view_torrents"] == "yes" || !MEMBERSONLY) {?>
-	<a href='<?php echo URLROOT; ?>/search/browse' class="list-group-item"><i class="fa fa-chevron-right"></i> <?php echo Lang::T("BROWSE_TORRENTS"); ?></a>
+    <a href='<?php echo URLROOT; ?>/search/browse' class="list-group-item"><i class="fa fa-chevron-right"></i> <?php echo Lang::T("BROWSE_TORRENTS"); ?></a>
 	<a href='<?php echo URLROOT; ?>/search/today' class="list-group-item"><i class="fa fa-chevron-right"></i> <?php echo Lang::T("TODAYS_TORRENTS"); ?></a>
 	<a href='<?php echo URLROOT; ?>/search' class="list-group-item"><i class="fa fa-chevron-right"></i> <?php echo Lang::T("SEARCH"); ?></a>
 	<a href='<?php echo URLROOT; ?>/search/needseed' class="list-group-item"><i class="fa fa-chevron-right"></i> <?php echo Lang::T("TORRENT_NEED_SEED"); ?></a>
@@ -28,5 +28,5 @@ if ($_SESSION["view_torrents"] == "yes" || !MEMBERSONLY) {?>
     </div>
 	<!-- end content -->
 
-<?php block::end();
+<?php Style::block_end();
 }

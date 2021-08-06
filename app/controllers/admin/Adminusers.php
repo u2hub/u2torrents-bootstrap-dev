@@ -1,14 +1,10 @@
 <?php
-class Adminusers extends Controller
+class Adminusers
 {
 
     public function __construct()
     {
-        Auth::user();
-        Auth::isStaff();
-        $this->userModel = $this->model('User');
-        $this->logsModel = $this->model('Logs');
-        $this->valid = new Validation();
+        $this->session = Auth::user(_MODERATOR, 2);
     }
 
     public function index()
@@ -21,23 +17,23 @@ class Adminusers extends Controller
         $data = [
             'title' => 'Add User',
         ];
-        $this->view('user/admin/adduser', $data, 'admin');
+        View::render('user/admin/adduser', $data, 'admin');
     }
 
     public function addeduserok()
     {
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if ($_POST["username"] == "" || $_POST["password"] == "" || $_POST["email"] == "") {
-                show_error_msg("Error", "Missing form data.");
+                Redirect::autolink(URLROOT . "/adminusers", "Missing form data.");
             }
             if ($_POST["password"] != $_POST["password2"]) {
-                show_error_msg("Error", "Passwords mismatch.");
+                Redirect::autolink(URLROOT . "/adminusers", "Passwords mismatch.");
             }
             $username = $_POST["username"];
             $password = $_POST["password"];
             $email = $_POST["email"];
-            $secret = mksecret();
-            $passhash = md5($password);
+            $secret = Helper::mksecret();
+            $passhash = password_hash($password, PASSWORD_BCRYPT);
             $secret = $secret;
             /*
             $count = get_row_count("users", "WHERE username=$username");
@@ -62,7 +58,7 @@ class Adminusers extends Controller
             'title' => 'Where are members',
             'res' => $res,
         ];
-        $this->view('user/admin/whoswhere', $data, 'admin');
+        View::render('user/admin/whoswhere', $data, 'admin');
     }
 
     public function privacy()
@@ -94,7 +90,7 @@ class Adminusers extends Controller
             'res' => $res,
             'pagerbottom' => $pagerbottom,
         ];
-        $this->view('user/admin/privacylevel', $data, 'admin');
+        View::render('user/admin/privacylevel', $data, 'admin');
     }
 
     public function duplicateip()
@@ -108,7 +104,7 @@ class Adminusers extends Controller
             'num' => $num,
             'res' => $res,
         ];
-        $this->view('user/admin/duplicuteip', $data, 'admin');
+        View::render('user/admin/duplicuteip', $data, 'admin');
     }
 
     public function confirm()
@@ -119,7 +115,7 @@ class Adminusers extends Controller
                 DB::run("UPDATE `users` SET `status` = 'confirmed' WHERE `status` = 'pending' AND `invited_by` = '0'");
             } else {
                 if (!@count($_POST["users"])) {
-                    show_error_msg(Lang::T("ERROR"), Lang::T("NOTHING_SELECTED"), 1);
+                    Redirect::autolink(URLROOT."/adminusers/duplicateip", Lang::T("NOTHING_SELECTED"));
                 }
                 $ids = array_map("intval", $_POST["users"]);
                 $ids = implode(", ", $ids);
@@ -137,7 +133,7 @@ class Adminusers extends Controller
             'pagerbottom' => $pagerbottom,
             'res' => $res,
         ];
-        $this->view('user/admin/confirmreg', $data, 'admin');
+        View::render('user/admin/confirmreg', $data, 'admin');
     }
 
     public function cheats()
@@ -158,9 +154,9 @@ class Adminusers extends Controller
                     'zerofix' => $zerofix,
                     'message' => $message
                     ];
-                    $this->view('user/admin/cheatresult', $data, 'admin');
+                    View::render('user/admin/cheatresult', $data, 'admin');
             } else {
-                Session::flash('info', $message, URLROOT . "/adminusers/cheats");
+                    Redirect::autolink(URLROOT . '/adminusers/cheats', $message);
                 die;
             } 
 
@@ -168,130 +164,8 @@ class Adminusers extends Controller
             $data = [
             'title' => Lang::T("Possible Cheater Detection"),
             ];
-            $this->view('user/admin/cheatform', $data, 'admin');
+            View::render('user/admin/cheatform', $data, 'admin');
         }
-    }
-
-    public function simplesearch()
-    {
-        if ($_SESSION['delete_users'] == 'no' || $_SESSION['delete_torrents'] == 'no') {
-            Redirect::autolink(URLROOT . "/admincp", "You do not have permission to be here.");
-        }
-        if ($_POST['do'] == "del") {
-            if (!@count($_POST["users"])) {
-                show_error_msg(Lang::T("ERROR"), "Nothing Selected.", 1);
-            }
-            $ids = array_map("intval", $_POST["users"]);
-            $ids = implode(", ", $ids);
-            $res = DB::run("SELECT `id`, `username` FROM `users` WHERE `id` IN ($ids)");
-            while ($row = $res->fetch(PDO::FETCH_LAZY)) {
-                Logs::write("Account '$row[1]' (ID: $row[0]) was deleted by $_SESSION[username]");
-                $this->userModel->deleteuser($row[0]);
-            }
-            if ($_POST['inc']) {
-                $res = DB::run("SELECT `id`, `name` FROM `torrents` WHERE `owner` IN ($ids)");
-                while ($row = $res->fetch(PDO::FETCH_LAZY)) {
-                    Logs::write("Torrent '$row[1]' (ID: $row[0]) was deleted by $_SESSION[username]");
-                    deletetorrent($row["id"]);
-                }
-            }
-            Redirect::autolink(URLROOT . "/adminusers/simplesearch", "Entries Deleted");
-        }
-        $where = null;
-        if (!empty($_GET['search'])) {
-            $search = sqlesc('%' . $_GET['search'] . '%');
-            $where = "AND username LIKE " . $search . " OR email LIKE " . $search . "
-                 OR ip LIKE " . $search;
-        }
-        $count = get_row_count("users", "WHERE enabled = 'yes' AND status = 'confirmed' $where");
-        list($pagertop, $pagerbottom, $limit) = pager(25, $count, '/adminusers/simpleusersearch?;');
-        $res = DB::run("SELECT id, username, class, email, ip, added, last_access FROM users WHERE enabled = 'yes' AND status = 'confirmed' $where ORDER BY username DESC $limit");
-
-        $data = [
-            'title' => Lang::T("USERS_SEARCH_SIMPLE"),
-            'count' => $count,
-            'pagerbottom' => $pagerbottom,
-            'res' => $res,
-        ];
-        $this->view('user/admin/simpleusersearch', $data, 'admin');
-    }
-
-    public function advancedsearch()
-    {
-        $do = $_GET['do']; // todo
-        if ($do == "warndisable") {
-            if (empty($_POST["warndisable"])) {
-                show_error_msg(Lang::T("ERROR"), "You must select a user to edit.", 1);
-            }
-            if (!empty($_POST["warndisable"])) {
-                $enable = $_POST["enable"];
-                $disable = $_POST["disable"];
-                $unwarn = $_POST["unwarn"];
-                $warn = $_POST["warn"];
-                $warnlength = (int) $_POST["warnlength"];
-                $warnpm = $_POST["warnpm"];
-                $_POST['warndisable'] = array_map("intval", $_POST['warndisable']);
-                $userid = implode(", ", $_POST['warndisable']);
-                if ($disable != '') {
-                    DB::run("UPDATE users SET enabled='no' WHERE id IN (" . implode(", ", $_POST['warndisable']) . ")");
-                }
-                if ($enable != '') {
-                    DB::run("UPDATE users SET enabled='yes' WHERE id IN (" . implode(", ", $_POST['warndisable']) . ")");
-                }
-                if ($unwarn != '') {
-                    $msg = "Your Warning Has Been Removed";
-                    foreach ($_POST["warndisable"] as $userid) {
-                        $qry = DB::run("INSERT INTO messages (poster, sender, receiver, added, msg) VALUES (?,?,?,?,?)", [0, 0, $userid, TimeDate::get_date_time(), $msg]);
-                        if (!$qry) {
-                            die("<b>A fatal MySQL error occured</b>.\n<br />Query: " . $query . "<br />\n" . Lang::T("ERROR") . ": (" . $qry->errorCode() . ") " . $qry->errorInfo());
-                        }
-                    }
-                    $r = DB::run("SELECT modcomment FROM users WHERE id IN (" . implode(", ", $_POST['warndisable']) . ")") or die("<b>A fatal MySQL error occured</b>.\n<br />Query: " . $query . "<br />\n" . Lang::T("ERROR") . ": (" . $r->errorCode() . ") " . $r->errorInfo());
-                    $user = $r->fetch(PDO::FETCH_LAZY);
-                    $exmodcomment = $user["modcomment"];
-                    $modcomment = gmdate("Y-m-d") . " - Warning Removed By " . $_SESSION['username'] . ".\n" . $modcomment . $exmodcomment;
-                    $query = "UPDATE users SET modcomment=" . sqlesc($modcomment) . " WHERE id IN (" . implode(", ", $_POST['warndisable']) . ")";
-                    $q = DB::run($query);
-                    if (!$q) {
-                        die("<b>A fatal MySQL error occured</b>.\n<br />Query: " . $query . "<br />\n" . Lang::T("ERROR") . ": (" . $q->errorCode() . ") " . $q->errorInfo());
-                    }
-
-                    DB::run("UPDATE users SET warned='no' WHERE id IN (" . implode(", ", $_POST['warndisable']) . ")");
-                }
-                if ($warn != '') {
-                    if (empty($_POST["warnpm"])) {
-                        show_error_msg(Lang::T("ERROR"), "You must type a reason/mod comment.", 1);
-                    }
-
-                    $msg = "You have received a warning, Reason: $warnpm";
-                    $user = DB::run("SELECT modcomment FROM users WHERE id IN (" . implode(", ", $_POST['warndisable']) . ")")->fetch();
-                    $exmodcomment = $user["modcomment"];
-                    $modcomment = gmdate("Y-m-d") . " - Warned by " . $_SESSION['username'] . ".\nReason: $warnpm\n" . $modcomment . $exmodcomment;
-                    $query = "UPDATE users SET modcomment=" . sqlesc($modcomment) . " WHERE id IN (" . implode(", ", $_POST['warndisable']) . ")";
-                    $upd = DB::run($query);
-                    if (!$upd) {
-                        die("<b>A fatal MySQL error occured</b>.\n<br />Query: " . $query . "<br />\n" . Lang::T("ERROR") . ": (" . $upd->errorCode() . ") " . $upd->errorInfo());
-                    }
-
-                    DB::run("UPDATE users SET warned='yes' WHERE id IN (" . implode(", ", $_POST['warndisable']) . ")");
-                    foreach ($_POST["warndisable"] as $userid) {
-                        $ins = DB::run("INSERT INTO messages (poster, sender, receiver, added, msg) VALUES ('0', '0', '" . $userid . "', '" . TimeDate::get_date_time() . "', " . sqlesc($msg) . ")");
-                        if (!$ins) {
-                            die("<b>A fatal MySQL error occured</b>.\n <br />\n" . Lang::T("ERROR") . ": (" . $ins->errorCode() . ") " . $ins->errorInfo());
-                        }
-
-                    }
-                }
-            }
-            Redirect::autolink("$_POST[referer]", "Redirecting back");
-            die;
-        }
-
-        $title = Lang::T("ADVANCED_USER_SEARCH");
-        require APPROOT . '/views/admin/header.php';
-        Style::adminnavmenu();
-        require APPROOT . '/views/user/admin/advancedsearch.php';
-        require APPROOT . '/views/admin/footer.php';
     }
 
 }

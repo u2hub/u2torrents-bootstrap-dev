@@ -1,12 +1,10 @@
 <?php
-class Group extends Controller {
-
+class Group
+{
 
     public function __construct()
     {
-        Auth::user();
-        $this->countriesModel = $this->model('Countries');
-        $this->groupsModel = $this->model('Groups');
+        $this->session = Auth::user(0, 2);
     }
 
     public function index()
@@ -17,12 +15,12 @@ class Group extends Controller {
     public function members()
     {
         if ($_SESSION["view_users"] == "no") {
-            Session::flash('info', Lang::T("NO_USER_VIEW"), URLROOT."/home");
+            Redirect::autolink(URLROOT, Lang::T("NO_USER_VIEW"));
         }
 
-        $search = trim(Input::get('search'));
-        $class = (int) (Input::get('class'));
-        $letter = trim(Input::get('letter'));
+        $search = Input::get('search');
+        $class = (int) Input::get('class');
+        $letter = Input::get('letter');
         if (!$class) {
             unset($class);
         }
@@ -51,22 +49,22 @@ class Group extends Controller {
             $q .= ($q ? "&amp;" : "") . "class=$class";
         }
 
-        $res = $this->groupsModel->getGroups();
+        $res = Groups::getGroups();
         $data = [
             'title' => 'Members',
             'getgroups' => $res,
             'query1' => $query,
-            'query2' => $q
+            'query2' => $q,
         ];
-        $this->view('groups/index', $data, 'user');
+        View::render('groups/index', $data, 'user');
     }
 
     public function staff()
     {
         $dt = TimeDate::get_date_time(TimeDate::gmtime() - 180);
-        $res = $this->groupsModel->getStaff();
-        $col = []; //undefined var
-        $table = []; //undefined var
+        $res = Groups::getStaff();
+        $col = [];
+        $table = [];
         while ($row = $res->fetch(PDO::FETCH_ASSOC)) {
             $table[$row['class']] = ($table[$row['class']] ?? '') .
             "<td><img src='" . URLROOT . "/assets/images/button_o" . ($row["last_access"] > $dt ? "n" : "ff") . "line.png' alt='' /> " .
@@ -86,9 +84,9 @@ class Group extends Controller {
             $where = "AND `staff_public` = 'yes'";
         }
 
-        $res = $this->groupsModel->getStaffLevel($where);
+        $res = Groups::getStaffLevel($where);
         if ($res->rowCount() == 0) {
-            Session::flash('info', Lang::T("NO_STAFF_HERE"), URLROOT."/home");
+            Redirect::autolink(URLROOT, Lang::T("NO_STAFF_HERE"));
         }
         $title = Lang::T("STAFF");
         $data = [
@@ -96,7 +94,7 @@ class Group extends Controller {
             'sql' => $res,
             'table' => $table,
         ];
-        $this->view('groups/staff', $data, 'user');
+        View::render('groups/staff', $data, 'user');
     }
 
 }

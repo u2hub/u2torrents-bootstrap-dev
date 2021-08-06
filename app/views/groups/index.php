@@ -9,7 +9,7 @@
     }
     print("</select>\n");
     ?> 
-<button type='submit' class='btn btn-warning btn-sm'><?php echo Lang::T("APPLY"); ?></button>
+<button type='submit' class='btn ttbtn btn-sm'><?php echo Lang::T("APPLY"); ?></button>
 </form></center>
 
 <p align='center'>
@@ -33,7 +33,7 @@ if ($page <= 0) {
 $per_page = 5; // Set how many records do you want to display per page.
 $startpoint = ($page * $per_page) - $per_page;
 $statement = "`users` ORDER BY `id` ASC"; // Change `users` & 'id' according to your table name.
-$results = $this->groupsModel->getGroupsearch($data['query1'], $startpoint, $per_page);
+$results = Groups::getGroupsearch($data['query1'], $startpoint, $per_page);
 if ($results->rowCount()) { ?>
     <br />
     <div class='table-responsive'> <table class='table table-striped'><thead>
@@ -46,7 +46,7 @@ if ($results->rowCount()) { ?>
     </tr></thead>
     <?php
     while ($row = $results->fetch(PDO::FETCH_ASSOC)) {
-        $country = Helper::showflag($row['country']);
+        $country = Countries::showflag($row['country']);
         ?>
         <tbody><tr>
         <td><a href='<?php echo URLROOT; ?>/profile?id=<?php echo $row['id']; ?>'><b><?php echo Users::coloredname($row['username']) ?></b></a><?php echo  ($row["donated"] > 0 ? "<img src='".URLROOT."/assets/images/star.png' border='0' alt='Donated' />" : "") ?></td>

@@ -1,10 +1,9 @@
 <?php
-class Adminexceptions extends Controller
+class Adminexceptions
 {
     public function __construct()
     {
-        Auth::user();
-        Auth::isStaff();
+        $this->session = Auth::user(_ADMINISTRATOR, 2);
     }
 
     public function index() {
@@ -30,7 +29,7 @@ class Adminexceptions extends Controller
             'filecontents' => $filecontents,
             'errorlog' => $errorlog,
         ];
-        $this->view('error/admin/admin', $data, 'admin');
+        View::render('error/admin/admin', $data, 'admin');
     }
 
 }

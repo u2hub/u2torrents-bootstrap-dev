@@ -1,11 +1,10 @@
 <?php
 if ($_SESSION['loggedin'] == true) {
-	$db = Database::instance();
-    Block::begin(Lang::T("NEWEST_MEMBERS"));
+	Style::block_begin(Lang::T("NEWEST_MEMBERS"));
     $TTCache = new Cache();
     $expire = 600; // time in seconds
     if (($rows = $TTCache->Get("newestmember_block", $expire)) === false) {
-        $res = $db->run("SELECT id, username FROM users WHERE enabled =?  AND status=? AND privacy !=?  ORDER BY id DESC LIMIT 5", ['yes', 'confirmed', 'strong']);
+        $res = DB::run("SELECT id, username FROM users WHERE enabled =?  AND status=? AND privacy !=?  ORDER BY id DESC LIMIT 5", ['yes', 'confirmed', 'strong']);
         $rows = array();
 
         while ($row = $res->fetch(PDO::FETCH_ASSOC)) {
@@ -27,5 +26,5 @@ if ($_SESSION['loggedin'] == true) {
 
 <!-- end content -->
 
-<?php block::end();
+<?php Style::block_end();
 }

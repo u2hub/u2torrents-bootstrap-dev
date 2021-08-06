@@ -1,11 +1,9 @@
 <?php
-class Contactstaff extends Controller
+class Contactstaff
 {
     public function __construct()
     {
-        Auth::user();
-        // $this->userModel = $this->model('User');
-        $this->valid = new Validation();
+        $this->session = Auth::user(0, 2);
     }
 
     public function index()
@@ -13,34 +11,31 @@ class Contactstaff extends Controller
         $data = [
             'title' => 'Contact Staff',
         ];
-        $this->view('contactstaff/index', $data, 'user');
-
+        View::render('contactstaff/index', $data, 'user');
     }
 
     public function submit()
     {
-        if ((isset($_POST["msg"])) & (isset($_POST["sub"]))) {
-            $msg = trim($_POST["msg"]);
-            $sub = trim($_POST["sub"]);
+        if (Input::get("msg") && Input::get("sub")) {
+            $msg = Input::get("msg");
+            $sub = Input::get("sub");
             $error_msg = "";
-            if (!$msg) {
-                $error_msg = $error_msg . "You did not put message.</br>";
-            }
-            if (!$sub) {
-                $error_msg = $error_msg . "You did not put subject.</br>";
+            if (!$msg || !$sub) {
+                $error_msg = Lang::T("NO_EMPTY_FIELDS");
             }
             if ($error_msg != "") {
-                Session::flash('info', "Your message can not be sent:$error_msg</br>", URLROOT);
+                Redirect::autolink(URLROOT, $error_msg);
             } else {
                 $added = TimeDate::get_date_time();
                 $userid = $_SESSION['id'];
-                $req = DB::run("INSERT INTO staffmessages (sender, added, msg, subject) VALUES(?,?,?,?)", [$userid, $added, $msg, $sub]);
-                if ($req) {
-                    Session::flash('info', 'Your message has been sent. We will reply as soon as possible.', URLROOT);
+                $req = Staffmessage::insertStaffMessage($userid, $added, $msg, $sub);
+                if ($req == 1) {
+                    Redirect::autolink(URLROOT, Lang::T("CONTACT_SENT"));
                 } else {
-                    Session::flash('info', 'We are busy. try again later', URLROOT);
+                    Redirect::autolink(URLROOT, Lang::T("TRYLATER"));
                 }
             }
         }
     }
+
 }

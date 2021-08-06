@@ -1,14 +1,10 @@
 <?php
-class Admincensor extends Controller
+class Admincensor
 {
 
     public function __construct()
     {
-        Auth::user();
-        Auth::isStaff();
-        // $this->userModel = $this->model('User');
-        $this->logsModel = $this->model('Logs');
-        $this->valid = new Validation();
+        $this->session = Auth::user(_MODERATOR, 2);
     }
 
     public function index()
@@ -25,7 +21,7 @@ class Admincensor extends Controller
               'title' => Lang::T("Censor"),
               'sres' => $sres,
             ];
-            $this->view('censor/admin/oldcensor', $data, 'admin');
+            View::render('censor/admin/oldcensor', $data, 'admin');
         } else {
             $to = isset($_GET["to"]) ? htmlentities($_GET["to"]) : $to = '';
             switch ($to) {
@@ -47,9 +43,10 @@ class Admincensor extends Controller
                       'title' => Lang::T("Censor"),
                       'badwords' => $badwords,
                     ];
-                    $this->view('censor/admin/newcensor', $data, 'admin');
+                    View::render('censor/admin/newcensor', $data, 'admin');
                     break;
             }
         }
     }
+
 }

@@ -21,19 +21,19 @@ $GLOBALS['tstart'] = array_sum(explode(" ", microtime()));
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/monokai-sublime.min.css">
   </head>
 <body>
-  <?php require APPROOT . '/views/inc/default/navbar.php'; ?>
-<!-- START MAIN COLUMN -->
-<div class="container-fluid" style="padding-top: 10px;">
-  <div class="row">
-  <!-- START LEFT COLUMN -->
-  <?php if (LEFTNAV) {?>
-    <div class="col-sm-2 d-none d-sm-block sidenav">
-  <?php Block::left();?>
-     </div>
-  <?php }?>
-  <!-- END LEFT COLUMN -->
-  <!-- START MIDDLE COLUMN -->
-  <?php if (MIDDLENAV) {?>
-    <div class="col-sm-8">
-  <?php Block::middle();?>
-  <?php }?>
+
+<?php require APPROOT . '/views/inc/default/navbar.php'; ?><br>
+
+<div class="container-fluid">
+<div class="row">
+  
+<?php
+if (LEFTNAV) { ?>
+<div class="ttsidebar">
+  <?php Blocks::left();?>
+</div> <?php
+} ?>
+
+<div class="col">
+
+<th style="width: 70%">

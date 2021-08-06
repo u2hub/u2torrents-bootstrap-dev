@@ -1,20 +1,20 @@
 <?php
-class Rules extends Controller
+class Rules
 {
 
     public function __construct()
     {
-        Auth::user();
-        $this->rulesModel = $this->model('Rule');
+        $this->session = Auth::user(0, 1);
     }
 
     public function index()
     {
-        $res = $this->rulesModel->getRules();
+        $res = Rule::getRules();
         $data = [
             'title' => 'Rules',
             'res' => $res
         ];
-        $this->view('rules/index', $data, 'user');
+        View::render('rules/index', $data, 'user');
     }
+    
 }

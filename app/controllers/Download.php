@@ -1,75 +1,74 @@
 <?php
-class Download extends Controller
+class Download
 {
 
     public function __construct()
     {
-        Auth::user();
-        // $this->userModel = $this->model('User');
+        $this->session = Auth::user(0, 2);
     }
 
     public function index()
     {
-        // Ban Download
-        $subbanned = DB::run("SELECT id FROM users WHERE id=? AND downloadbanned=? LIMIT 1", [$_SESSION['id'], 'no']);
-        if ($subbanned->rowCount() < 1) {
-            Session::flash('info', "You are banned from downloading please contact staff if you feel this is a mistake !", URLROOT."/index");
+        if ($_SESSION['loggedin']) {
+            if ($_SESSION["can_download"] == "no") {
+                Redirect::autolink(URLROOT, Lang::T("NO_PERMISSION_TO_DOWNLOAD"));
+            }
+            if ($_SESSION["downloadbanned"] == "yes") {
+                Redirect::autolink(URLROOT, Lang::T("DOWNLOADBAN"));
+            }
         }
-        if ($_SESSION["can_download"] == "no") {
-            Session::flash('info', Lang::T("NO_PERMISSION_TO_DOWNLOAD"), URLROOT."/index");
-        }
+
         $id = (int) $_GET["id"];
         if (!$id) {
-            Session::flash('info', Lang::T("ID_NOT_FOUND_MSG_DL"), URLROOT."/index");
+            Redirect::autolink(URLROOT, Lang::T("ID_NOT_FOUND_MSG_DL"));
         }
-        
-        $fn = TORRENTDIR."/$id.torrent";
-        $res = DB::run("SELECT filename, banned, external, announce, owner, vip FROM torrents WHERE id =" . intval($id));
-        $row = $res->fetch(PDO::FETCH_ASSOC);
+
+        $fn = TORRENTDIR . "/$id.torrent";
+        $row = Torrents::isAvailableToDownload($id);
         $vip = $row['vip'];
         if ($_SESSION['class'] < _VIP && $vip == "yes") {
-            Session::flash('info', "<b>You can not download, you have to be VIP</b>", $_SERVER['HTTP_REFERER']);
+            Redirect::autolink($_SERVER['HTTP_REFERER'], Lang::T("VIPTODOWNLOAD"));
         }
         if (!$row) {
-            Session::flash('info', Lang::T("ID_NOT_FOUND"), $_SERVER['HTTP_REFERER']);
+            Redirect::autolink(URLROOT . '/home', Lang::T("ID_NOT_FOUND"));
         }
         if ($row["banned"] == "yes") {
-            Session::flash('info', Lang::T("BANNED_TORRENT"), $_SERVER['HTTP_REFERER']);
+            Redirect::autolink($_SERVER['HTTP_REFERER'], Lang::T("BANNED_TORRENT"));
         }
         if (!is_file($fn)) {
-            Session::flash('info', Lang::T("FILE_NOT_FILE"), $_SERVER['HTTP_REFERER']);
+            Redirect::autolink($_SERVER['HTTP_REFERER'], Lang::T("FILE_NOT_FILE"));
         }
         if (!is_readable($fn)) {
-            Session::flash('info', Lang::T("FILE_UNREADABLE"), $_SERVER['HTTP_REFERER']);
+            Redirect::autolink($_SERVER['HTTP_REFERER'], Lang::T("FILE_UNREADABLE"));
         }
         $name = $row['filename'];
         $friendlyurl = str_replace("http://", "", URLROOT);
         $friendlyname = str_replace(".torrent", "", $name);
         $friendlyext = ".torrent";
         $name = $friendlyname . "[" . $friendlyurl . "]" . $friendlyext;
-        DB::run("UPDATE torrents SET hits = hits + 1 WHERE id = $id");
         // LIKE MOD
         if (FORCETHANKS) {
-            if ($_SESSION["id"] != $row["owner"] && FORCETHANKS) {
-            $data = DB::run("SELECT user FROM thanks WHERE thanked = ? AND type = ? AND user = ?", [$id, 'torrent', $_SESSION['id']]);
-            $like = $data->fetch(PDO::FETCH_ASSOC);
+            if ($_SESSION["id"] != $row["owner"]) {
+                $data = DB::run("SELECT user FROM thanks WHERE thanked = ? AND type = ? AND user = ?", [$id, 'torrent', $_SESSION['id']]);
+                $like = $data->fetch(PDO::FETCH_ASSOC);
                 if (!$like) {
-                    Session::flash('info', Lang::T("PLEASE_THANK"), $_SERVER['HTTP_REFERER']);
+                    Redirect::autolink($_SERVER['HTTP_REFERER'], Lang::T("PLEASE_THANK"));
                 }
             }
         }
+        Torrents::updateHits($id);
         
-        // if user dont have a passkey generate one, only if current member, note - it was membersonly
-        if ($_SESSION['loggedin'] == true) {
+        // if user dont have a passkey generate one, only if current member
+        if ($_SESSION['loggedin']) {
             if (strlen($_SESSION['passkey']) != 32) {
                 $rand = array_sum(explode(" ", microtime()));
                 $_SESSION['passkey'] = md5($_SESSION['username'] . $rand . $_SESSION['secret'] . ($rand * mt_rand()));
-                DB::run("UPDATE users SET passkey=? WHERE id=?", [$_SESSION['passkey'], $_SESSION['id']]);
+                Users::setpasskey($_SESSION['passkey'], $_SESSION['id']);
             }
         }
-        
+
         // if not external and current member, note - it was membersonly
-        if ($row["external"] != 'yes' && $_SESSION['loggedin'] == true) { // local torrent so add passkey
+        if ($row["external"] != 'yes' && $_SESSION['loggedin']) { // local torrent so add passkey
             // Bencode
             $dict = Bencode::decode(file_get_contents($fn));
             $dict['announce'] = sprintf(PASSKEYURL, $_SESSION["passkey"]);
@@ -78,7 +77,7 @@ class Download extends Controller
             header('Content-Disposition: attachment; filename="' . $name . '"');
             header("Content-Type: application/x-bittorrent");
             print $data;
-        } else { // external torrent so no passkey needed
+        } else {
             header('Content-Disposition: attachment; filename="' . $name . '"');
             header('Content-Length: ' . filesize($fn));
             header("Content-Type: application/x-bittorrent");
@@ -95,13 +94,13 @@ class Download extends Controller
         $sql = DB::run("SELECT * FROM attachments WHERE  id=?", [$id])->fetch(PDO::FETCH_ASSOC);
         $extension = substr($sql['filename'], -3);
         if (!file_exists($fn)) {
-             echo "The file $filename does not exists";
+            Redirect::autolink($_SERVER['HTTP_REFERER'], "The file $filename does not exists");
         } else {
-        header('Content-Disposition: attachment; filename="' . $sql['filename'] . '"');
-        header('Content-Length: ' . filesize($fn));
-        header("Content-Type: application/$extension");
-        readfile($fn);
-       }
+            header('Content-Disposition: attachment; filename="' . $sql['filename'] . '"');
+            header('Content-Length: ' . filesize($fn));
+            header("Content-Type: application/$extension");
+            readfile($fn);
+        }
     }
-    
+
 }

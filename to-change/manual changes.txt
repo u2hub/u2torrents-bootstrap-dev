@@ -1,0 +1,145 @@
+Change the following:
+
+Copy the images to >> 
+
+public_html\assets\images
+
+...and the sub cats
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+apps/libraries/
+
+block.php
+style.php
+
+> remove the 2 </br> to be able to adjust the vertical space between the blocks via css styling.
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+apps/views/home/
+
+notice.php
+lastforumpost.php
+torrent.php
+hitnrun.php
+disclaimer.php
+
+Remove the <br /> from the files to be able to adjust the vertical space between the blocks via css styling.
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+app/views/user/login.php
+
+To change the login page, do the following:
+
+Change line 2-5: 
+
+    <div class="card-header">
+
+        <?php echo Lang::T("LOGIN"); ?>
+    </div>
+    <div class="card-body">
+	
+	To >>
+
+    <div class="card-header-login">
+    </div>
+	        <?php echo Lang::T("LOGIN"); ?>
+    <div class="card-body-login">
+
+	
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+app/views/user/signup.php	
+
+To change the signup page, do the following:
+
+Change line 1-3: 
+
+<?php
+Style::begin(Lang::T("SIGNUP"));
+?>
+
+To >>
+
+<div class="card-header-login">
+    </div>
+	<?php echo Lang::T("SIGNUP"); ?>
+	<div class="card-body-login">
+
+Change line 11 >>
+
+    <?php echo Lang::T("COOKIES"); ?><br>
+
+To >>
+
+    <?php echo Lang::T("COOKIES"); ?><br><br>    
+
+Change line 59 - end:
+
+</div>
+</div>
+
+</form>
+</div>
+<?php
+Style::end();
+?>
+
+To >>
+
+</div>
+</div>
+</div>
+</form>
+</div>
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+app/views/user/recover.php	
+
+To change the recover page, do the following:
+
+Change line 1-3: 
+
+<?php
+Style::begin(Lang::T("RECOVER_ACCOUNT"));
+?>
+
+To >>
+
+<div class="card-header-login">
+    </div>
+	<?php echo Lang::T("RECOVER_ACCOUNT"); ?>
+	<div class="card-body-login">
+
+
+Change line 17 - end:
+
+</form>
+</div>
+<?php
+Style::end();
+
+To >>
+
+</form>
+</div>
+</div>
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

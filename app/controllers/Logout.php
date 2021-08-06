@@ -1,10 +1,11 @@
 <?php
-class Logout extends Controller
+class Logout
 {
 
     public function index()
-    { 
+    {
         Cookie::destroyAll();
-        Redirect::to(URLROOT."/login");
+        Redirect::to(URLROOT . "/login");
     }
+
 }

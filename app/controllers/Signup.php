@@ -1,42 +1,41 @@
 <?php
-class Signup extends Controller
+class Signup
 {
     public function __construct()
     {
-        $this->userModel = $this->model('User');
-        $this->pdo = new Database();
-        $this->valid = new Validation();
-        $this->countriesModel = $this->model('Countries');
+        $this->session = Auth::user(0, 0);
     }
 
     public function index()
     {
-/*//check if IP is already a peer
-if (IPCHECK) {
-$ip = $_SERVER['REMOTE_ADDR'];
-$ipq = get_row_count("users", "WHERE ip = '$ip'");
-if ($ipq >= ACCOUNTMAX) {
-Session::flash('info', "This IP is already in use !", URLROOT."/login");
-}
-}*/
-        // Disable checks if we're signing up with an invite
-        if (!$this->valid->validId($_REQUEST["invite"]) || strlen($_REQUEST["secret"]) != 20) {
+        //check if IP is already a peer
+        if (IPCHECK) {
+            $ip = $_SERVER['REMOTE_ADDR'];
+            $ipq = get_row_count("users", "WHERE ip = '$ip'");
+            if ($ipq >= ACCOUNTMAX) {
+                Redirect::autolink(URLROOT . '/login', "This IP is already in use !");
+            }
+        }
+        // Check if we're signing up with an invite
+        $invite = Input::get("invite");
+        $secret = Input::get("secret");
+        if (!Validate::Id($invite) || strlen($secret) != 20) {
             if (INVITEONLY) {
-                Session::flash('info', "<center>".Lang::T("INVITE_ONLY_MSG")."<br></center>", URLROOT . "/home");
+                Redirect::autolink(URLROOT . '/home', "<center>" . Lang::T("INVITE_ONLY_MSG") . "<br></center>");
             }
         } else {
-            $stmt = $this->pdo->run("SELECT id FROM users WHERE id = ? AND secret = ?", [$_REQUEST['invite'], $_REQUEST["secret"]]);
-            $invite_row = $stmt->fetch(PDO::FETCH_ASSOC);
+            $invite_row = Users::selectInviteIdBySecret($invite, $secret);
             if (!$invite_row) {
-                Session::flash('info', Lang::T("INVITE_ONLY_NOT_FOUND")."".(SIGNUPTIMEOUT / 86400)."days.", URLROOT . "/home");
+                Redirect::autolink(URLROOT . '/home', Lang::T("INVITE_ONLY_NOT_FOUND") . "" . (SIGNUPTIMEOUT / 86400) . "days.");
             }
         }
         $title = Lang::T("SIGNUP");
+        // Template
         $data = [
             'title' => $title,
             'invite' => $invite_row,
         ];
-        $this->view('user/signup', $data, 'user');
+        View::render('user/signup', $data, 'user');
     }
 
     public function submit()
@@ -50,85 +49,82 @@ Session::flash('info', "This IP is already in use !", URLROOT."/login");
             $gender = Input::get("gender");
             $client = Input::get("client");
             $age = Input::get("age");
-
+            // Is It A Invite
             $secret = Input::get("secret");
             $invite = Input::get("invite");
             if (strlen($secret) == 20 || !is_numeric($invite)) {
-                $stmt = $this->pdo->run("SELECT id FROM users WHERE id = ? AND secret = ?", [$invite, $secret]);
-                $invite_row = $stmt->fetch(PDO::FETCH_ASSOC);
+                $invite_row = Users::selectInviteIdBySecret($invite, $secret);
             }
 
-            $message = $this->validSign($wantusername, $email, $wantpassword, $passagain);
+            $message = $this->validSign($wantusername, $email, $wantpassword, $passagain, $invite_row);
             if ($message == "") {
-                // Certain checks must be skipped for invites
+                // If NOT Invite Check
                 if (!$invite_row) {
                     // get max members, and check how many users there is
                     $numsitemembers = get_row_count("users");
                     if ($numsitemembers >= MAXUSERS) {
-                        $mess = Lang::T("SITE_FULL_LIMIT_MSG") . number_format(MAXUSERS) . " " . Lang::T("SITE_FULL_LIMIT_REACHED_MSG") . " " . number_format($numsitemembers) . " members";
-                        Session::flash('info', $mess, URLROOT . "/home");
+                        $msg = Lang::T("SITE_FULL_LIMIT_MSG") . number_format(MAXUSERS) . " " . Lang::T("SITE_FULL_LIMIT_REACHED_MSG") . " " . number_format($numsitemembers) . " members";
+                        Redirect::autolink(URLROOT . '/home', $msg);
                     }
                     // check email isnt banned
                     $maildomain = (substr($email, strpos($email, "@") + 1));
-                    $a = $this->pdo->run("SELECT count(*) FROM email_bans where mail_domain=?", [$email])->fetchColumn();
+                    $a = DB::run("SELECT count(*) FROM email_bans where mail_domain=?", [$email])->fetchColumn();
                     if ($a != 0) {
                         $message = sprintf(Lang::T("EMAIL_ADDRESS_BANNED_S"), $email);
                     }
-                    $a = $this->pdo->run("SELECT count(*) FROM email_bans where mail_domain LIKE '%$maildomain%'")->fetchColumn();
+                    $a = DB::run("SELECT count(*) FROM email_bans where mail_domain LIKE '%$maildomain%'")->fetchColumn();
                     if ($a != 0) {
                         $message = sprintf(Lang::T("EMAIL_ADDRESS_BANNED_S"), $email);
                     }
                     // check if email addy is already in use
-                    $a = $this->pdo->run("SELECT count(*) FROM users where email=?", [$email])->fetchColumn();
+                    $a = DB::run("SELECT count(*) FROM users where email=?", [$email])->fetchColumn();
                     if ($a != 0) {
                         $message = sprintf(Lang::T("EMAIL_ADDRESS_INUSE_S"), $email);
                     }
                 }
-                
+
                 //check username isnt in use
                 $count = DB::run("SELECT count(*) FROM users WHERE  username=?", [$wantusername])->fetchColumn();
-	            if ($count != 0) {
+                if ($count != 0) {
                     $message = sprintf(Lang::T("USERNAME_INUSE_S"), $wantusername);
-                    $secret = mksecret(); //generate secret field
-                    $wantpassword = password_hash($wantpassword, PASSWORD_BCRYPT); // hash the password
                 }
-                
-                $secret = mksecret(); //generate secret field
+
+                $secret = Helper::mksecret(); //generate secret field
                 $wantpassword = password_hash($wantpassword, PASSWORD_BCRYPT); // hash the password
             }
+            // Checks Returns Message
             if ($message != "") {
-                Session::flash('info', $message, URLROOT . "/login");
+                Redirect::autolink(URLROOT . '/login', $message);
             }
 
             if ($message == "") {
+                // Invited User
                 if ($invite_row) {
-                    $this->pdo->run("
-			            UPDATE users
-			            SET username=?, password=?, secret=?, status=?, added=?
-                        WHERE id=?",
-                        [$wantusername, $wantpassword, $secret, 'confirmed', TimeDate::get_date_time(), $invite_row['id']]);
+                    Users::updateUserBits($wantusername, $wantpassword, $secret, 'confirmed', TimeDate::get_date_time(), $invite_row['id']);
+
                     //send pm to new user
                     if (WELCOMEPM_ON) {
                         $dt = TimeDate::get_date_time();
                         $msg = WELCOMEPM_MSG;
-                        $this->pdo->run("INSERT INTO messages (sender, receiver, added, msg, poster) VALUES(0, $invite_row[id], $dt, $msg, 0)");
+                        Message::insertmessage(0, $invite_row['id'], $dt, 'Welcome', $msg, 'yes', 'in');
                     }
-                    Session::flash('info', Lang::T("ACCOUNT_ACTIVATED"), URLROOT . "/login");
+                    Redirect::autolink(URLROOT . '/login', Lang::T("ACCOUNT_ACTIVATED"));
                     die;
                 }
+
                 if (CONFIRMEMAIL) {
                     $status = "pending";
                 } else {
                     $status = "confirmed";
                 }
-                //make first member admin
+                // Make first member admin
                 if ($numsitemembers == '0') {
                     $signupclass = '7';
                 } else {
                     $signupclass = '1';
                     // Shout new user
                     $msg_shout = "New User: " . $wantusername . " has joined.";
-                    $this->pdo->run("INSERT INTO shoutbox (userid, date, user, message) VALUES(?,?,?,?)", [0, TimeDate::get_date_time(), 'System', $msg_shout]);
+                    Shoutboxs::insertShout(0, TimeDate::get_date_time(), 'System', $msg_shout);
                 }
 
                 DB::run("
@@ -138,9 +134,16 @@ Session::flash('info', "This IP is already in use !", URLROOT."/login");
                     VALUES
                     (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                     [$wantusername, $wantpassword, $secret, $email, $status, TimeDate::get_date_time(),
-                    TimeDate::get_date_time(), TimeDate::get_date_time(), $age, $country, $gender,
-                    $client, DEFAULTTHEME, DEFAULTLANG, $signupclass, Helper::getIP()]);
+                        TimeDate::get_date_time(), TimeDate::get_date_time(), $age, $country, $gender,
+                        $client, DEFAULTTHEME, DEFAULTLANG, $signupclass, Ip::getIP()]);
                 $id = DB::lastInsertId();
+
+                //send pm to new user
+                if (WELCOMEPM_ON) {
+                    $dt = TimeDate::get_date_time();
+                    $mess = WELCOMEPM_MSG;
+                    Message::insertmessage(0, $id, $dt, 'Welcome', $mess, 'yes', 'in');
+                }
 
                 if (ACONFIRM) {
                     $body = Lang::T("YOUR_ACCOUNT_AT") . " " . SITENAME . " " . Lang::T("HAS_BEEN_CREATED_YOU_WILL_HAVE_TO_WAIT") . "\n\n" . SITENAME . " " . Lang::T("ADMIN");
@@ -150,15 +153,9 @@ Session::flash('info', "This IP is already in use !", URLROOT."/login");
                 if (CONFIRMEMAIL) {
                     $TTMail = new TTMail();
                     $TTMail->Send($email, "Your " . SITENAME . " User Account", $body, "", "-f" . SITEEMAIL . "");
-                    Session::flash('info', Lang::T("A_CONFIRMATION_EMAIL_HAS_BEEN_SENT") . " (" . htmlspecialchars($email) . "). " . Lang::T("ACCOUNT_CONFIRM_SENT_TO_ADDY_REST") . " <br/ >", URLROOT . "/login");
+                    Redirect::autolink(URLROOT . '/login', Lang::T("A_CONFIRMATION_EMAIL_HAS_BEEN_SENT") . " (" . htmlspecialchars($email) . "). " . Lang::T("ACCOUNT_CONFIRM_SENT_TO_ADDY_REST") . " <br/ >");
                 } else {
-                    Session::flash('info', Lang::T("ACCOUNT_ACTIVATED"), URLROOT . "/login");
-                }
-                //send pm to new user
-                if (WELCOMEPM_ON) {
-                    $dt = TimeDate::get_date_time();
-                    $msg = WELCOMEPM_MSG;
-                    $this->pdo->run("INSERT INTO messages (sender, receiver, added, msg, poster, subject) VALUES(?,?,?,?,?,?)", [0, $id, $dt, $msg, 0, 'Welcome']);
+                    Redirect::autolink(URLROOT . '/login', Lang::T("ACCOUNT_ACTIVATED"));
                 }
                 die;
             }
@@ -167,31 +164,22 @@ Session::flash('info', "This IP is already in use !", URLROOT."/login");
         }
     }
 
-    public function validSign($wantusername, $email, $wantpassword, $passagain)
+    public function validSign($wantusername, $email, $wantpassword, $passagain, $invite_row)
     {
-        if ($this->valid->isEmpty($wantusername)) {
-            $message = "Please enter the account.";
-        }
-        if ($this->valid->isEmpty($email)) {
-            //$message = "Please enter an email.";
-        }
-        if ($this->valid->isEmpty($wantpassword)) {
-            $message = "Please enter a password.";
-        }
-        if ($this->valid->isEmpty($passagain)) {
-            $message = "Please enter the second password.";
-        }
-        if ($wantpassword != $passagain) {
-            $message = "The passwords do not match.";
-        }
-        if (strlen($wantpassword) < 6 || strlen($passagain) > 16) {
-            $message = "Password must be between 6 and 16 characters long.";
-        }
-        if (strlen($wantusername) < 3 && strlen($wantusername) > 25) {
-            $message = "User can have between 3 and 25 characters.";
-        }
-        if (!ctype_alnum($wantusername)) {
-            $message = "The username can only contain letters and numbers with no space.";
+        if (Validate::isEmpty($wantpassword) || (Validate::isEmpty($email) && !$invite_row) || Validate::isEmpty($wantusername)) {
+            $message = Lang::T("DONT_LEAVE_ANY_FIELD_BLANK");
+        } elseif (strlen($wantusername) > 50) {
+            $message = sprintf(Lang::T("USERNAME_TOO_LONG"), 16);
+        } elseif ($wantpassword != $passagain) {
+            $message = Lang::T("PASSWORDS_NOT_MATCH");
+        } elseif (strlen($wantpassword) < 6) {
+            $message = sprintf(Lang::T("PASS_TOO_SHORT_2"), 6);
+        } elseif (strlen($wantpassword) > 16) {
+            $message = sprintf(Lang::T("PASS_TOO_LONG_2"), 16);
+        } elseif ($wantpassword == $wantusername) {
+            $message = Lang::T("PASS_CANT_MATCH_USERNAME");
+        } elseif (!$invite_row && !Validate::Email($email)) {
+            $message = "That doesn't look like a valid email address.";
         }
         return $message;
     }

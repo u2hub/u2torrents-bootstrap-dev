@@ -1,10 +1,9 @@
 <?php
 if ($_SESSION['loggedin'] == true) {
-	$db = Database::instance();
-    Block::begin(Lang::T("THEME") . " / " . Lang::T("LANGUAGE"));
+	Style::block_begin(Lang::T("THEME") . " / " . Lang::T("LANGUAGE"));
     $stylesheets = '';
     $languages = '';
-    $ss_r = $db->run("SELECT * from stylesheets");
+    $ss_r = DB::run("SELECT * from stylesheets");
     $ss_sa = array();
 
     while ($ss_a = $ss_r->fetch(PDO::FETCH_ASSOC)) {
@@ -26,7 +25,7 @@ if ($_SESSION['loggedin'] == true) {
         $stylesheets .= "<option value='$ss_id'$ss>$ss_name</option>\n";
     }
 
-    $lang_r = $db->run("SELECT * from languages");
+    $lang_r = DB::run("SELECT * from languages");
     $lang_sa = array();
 
     while ($lang_a = $lang_r->fetch(PDO::FETCH_ASSOC)) {
@@ -57,11 +56,11 @@ if ($_SESSION['loggedin'] == true) {
   	</div>
 	<div class="form-group">
 		<label><?php echo Lang::T("LANGUAGE"); ?></label>
-		<select name="language" style="width: 95%" ><?php echo $languages; ?></select></td>
+		<select name="language" style="width: 95%" ><?php echo $languages; ?></select>
   	</div>
-	<button type="submit" class="btn btn-warning center-block" value="" /><?php echo Lang::T("APPLY"); ?></button>
+	<button type="submit" class="btn ttbtn center-block" value="" /><?php echo Lang::T("APPLY"); ?></button>
   </form>
 
 <?php
-    block::end();
+    Style::block_end();
 }

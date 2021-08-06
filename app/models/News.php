@@ -1,11 +1,11 @@
 <?php
 class News
 {
-    private $db;
 
-    public function __construct()
+    public static function selectAll($id)
     {
-        $this->db = new Database;
+        $row = DB::run("SELECT * FROM news WHERE id =?", [$id])->fetch(PDO::FETCH_LAZY);
+        return $row;
     }
 
 }

@@ -1,10 +1,10 @@
 <nav class="navbar navbar-expand-lg">
-        <a class="navbar-brand" href="<?php echo URLROOT; ?>/home">
+  <a class="navbar-brand" href="<?php echo URLROOT; ?>">
             <img class="d-none d-sm-block" src="<?php echo URLROOT; ?>/assets/images/logo.png"><!-- Image to show on screens from small to extra large -->
             <img class="d-sm-none" src="<?php echo URLROOT; ?>/assets/images/logosmall.png"><!-- Image to show on extra small screen (mobile portrait) -->
-        </a> 
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
+        </a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+    <i class="fa fa-bars" style="color:#fff; font-size:28px;"></i>
   </button>
   
   <div class="collapse navbar-collapse" id="navbarsExampleDefault">
@@ -14,26 +14,13 @@
       <li class="nav-item active">
         <a class="nav-link" href="<?php echo URLROOT ?>">Home <span class="sr-only">(current)</span></a>
       </li>
-
-      <li class="nav-item">
-      <?php
-      $arr = DB::run("SELECT * FROM messages WHERE receiver=" . $_SESSION["id"] . " and unread='yes' AND location IN ('in','both')")->fetchAll();
-      $unreadmail = count($arr);
-    if ($unreadmail !== 0) {
-      print("<a class='nav-link' href='" . URLROOT . "/messages/inbox'><b><font color='#fff'>$unreadmail</font> " . Lang::N("NEWPM", $unreadmail) . "</b></a>");
-    } else {
-      print("<a class='nav-link' href='" . URLROOT . "/messages'>" . Lang::T("YOUR_MESSAGES") . "</a>");
-    }
-    ?>
-      </li>
-
       <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
         Profile
         </a>
         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
 		    <a class="dropdown-item" href="<?php echo URLROOT ?>/profile?id=<?php echo $_SESSION["id"]; ?>"><?php echo Lang::T("PROFILE"); ?></a>
-		  	<a class="dropdown-item" href="<?php echo URLROOT ?>/messages/inbox"><?php echo Lang::T("YOUR_MESSAGES"); ?></a>
+		  	<a class="dropdown-item" href="<?php echo URLROOT ?>/messages?type=inbox"><?php echo Lang::T("YOUR_MESSAGES"); ?></a>
         <a class="dropdown-item" href="<?php echo URLROOT ?>/peers/seeding?id=<?php echo $_SESSION['id']; ?>"><?php echo Lang::T("YOUR_TORRENTS"); ?></a>
         <a class="dropdown-item" href="<?php echo URLROOT ?>/friends?id=<?php echo $_SESSION['id']; ?>"><?php echo Lang::T("FRIENDS"); ?></a>
         <a class="dropdown-item" href="<?php echo URLROOT ?>/bonus"><?php echo Lang::T("SEEDING_BONUS"); ?></a> <!-- Check the link! -->
@@ -82,25 +69,36 @@
     </ul>
     <?php endif;?>
 
+    <?php if (!$_SESSION['id']): ?>
+    <ul class="navbar-nav mr-auto">
+    <a href="<?php echo URLROOT ?>/forums"><b><?php echo Lang::T("FORUMS"); ?></b></a>&nbsp;&nbsp;
+	  </ul>
+    <?php endif;?>
+
     <ul class="navbar-nav navbar-right d-none d-sm-block">
     <?php if (isset($_SESSION['id'])): ?>
-          <a href="<?php echo URLROOT; ?>/profile?id=<?php echo $_SESSION['id']; ?>">Hi <b><?php echo Users::coloredname($_SESSION['username']); ?></b></a>&nbsp;
+      Hi <a href="<?php echo URLROOT; ?>/profile?id=<?php echo $_SESSION['id']; ?>"><b><?php echo Users::coloredname($_SESSION['username']);?>,</b></a>
     <?php
     if ($_SESSION["uploaded"] > 0 && $_SESSION["downloaded"] == 0) {
         $userratio = 'Inf.';
     } elseif ($_SESSION["downloaded"] > 0) {
         $userratio = number_format($_SESSION["uploaded"] / $_SESSION["downloaded"], 2);
     } else {
-        $userratio = '---';
+        $userratio = '--';
     }
     $userdownloaded = mksize($_SESSION["downloaded"]);
     $useruploaded = mksize($_SESSION["uploaded"]);
     $privacylevel = Lang::T($_SESSION["privacy"]);
-      print("&nbsp;&nbsp;
-        <img src='" . URLROOT . "/assets/images/up.gif' border='none' height='20' width='20' alt='Downloaded' title='Downloaded'><font color='#FFCC66'><b>$userdownloaded</b></font>&nbsp;&nbsp;
-        <img src='" . URLROOT . "/assets/images/seed.gif' border='none' height='20' width='20' alt='Uploaded' title='Uploaded'> <font color='#33CCCC'><b>$useruploaded</b></font>&nbsp;&nbsp;
-        <img src='" . URLROOT . "/assets/images/button_online.png' border='none' height='20' width='20' alt='Ratio' title='Ratio'> (<b><font color='#FFF'>$userratio</font></b>)&nbsp;&nbsp;
-        B &nbsp;<a href='" . URLROOT . "/bonus' title='Bonus'><font color=#00cc00>$_SESSION[seedbonus]</font></a>&nbsp;&nbsp;");
+	$countslot = DB::run("SELECT DISTINCT torrent FROM peers WHERE userid =?  AND seeder=?", [$_SESSION['id'], 'yes']);
+    $maxslotdownload = $countslot->rowCount();
+    $slots = number_format($_SESSION["maxslots"]) . "/" . number_format($maxslotdownload);
+      print("&nbsp;
+        <i class='fa fa-download' style='font-size:18px' alt='Downloaded' title='You have downloaded'></i>&nbsp;&nbsp;<font color='#FFCC66'><b>$userdownloaded</b></font>&nbsp;
+        <i class='fa fa-upload' style='font-size:18px' alt='Uploaded' title='You have uploaded'></i>&nbsp;&nbsp;<font color='#33CCCC'><b>$useruploaded</b></font>&nbsp;
+        <i class='fa fa-retweet' style='font-size:18px' alt='Ratio' title='Your share ratio'></i>&nbsp;&nbsp;(<b><font color='#FFF'>$userratio</font></b>)&nbsp;
+        <i class='fa fa-bold' style='font-size:18px' alt='Bonus' title='Your Bonus points'></i>&nbsp;&nbsp;<a href='". URLROOT ."/bonus' title='Bonus Points'><b><font color=#00cc00>$_SESSION[seedbonus]</font></b></a>&nbsp;
+		<i class='fa fa-money' style='font-size:18px' alt='Donate' title='Your Donations'></i>&nbsp;&nbsp;<a href='". URLROOT ."/donate' title='Donated'><b><font color=gold>$_SESSION[donated]</font></b></a>&nbsp;
+		<i class='fa fa-plus-square-o' style='font-size:18px' alt='Slots' title='Used Slots'></i>&nbsp;&nbsp;(<b><font color=#00cc00>$slots</font></b>)&nbsp;");
 //////connectable yes or know////////
     if ($_SESSION["view_torrents"] == "yes") {
         $activeseed = get_row_count("peers", "WHERE userid = '$_SESSION[id]' AND seeder = 'yes'");
@@ -110,20 +108,30 @@
         if ($connect == 'yes') {
             $connectable = "<b><font color=\"#00FF00\">YES</font></b>";
         } elseif ($connect == 'no') {
-            $connectable = "<b><font color=\"FFCCFF\">NO</font></b>";
+            $connectable = "<b><font color=\"#FFCCFF\">NO</font></b>";
         } else {
-            $connectable = "<b><font color=\"99CCFF\">Check Settings</font></b>";
+            $connectable = "<b><font color=\"#EB7F27\">Read more</font></b>";
         }
     }
 
-    print("&nbsp;<font color=#fff>(<i>Seeding:</i></font>&nbsp; <a class='nav-top' href=\"javascript:popout(0)\"onclick=\"window.open('".URLROOT."/peers/popoutseed?id=" . $_SESSION["id"] . "','Seeding','width=350,height=350,scrollbars=yes')\" title='You are Seeding'><font color='#EB7F27'><b>" . $activeseed . "</b></font></a>&nbsp;");
-    print("<font color=#fff><i>Leeching:</i> </font>&nbsp;<a class='nav-top' href=\"javascript:popout(0)\"onclick=\"window.open('".URLROOT."/peers/popoutleech?id=" . $_SESSION["id"] . "','Seeding','width=350,height=350,scrollbars=yes')\" title='You are Leeching'><font color='#EB7F27'><b>" . $activeleech . "</b></font></a>&nbsp;");
-    print("<font color=#fff><i>Connected:</i></font>&nbsp; " . $connectable . ")");
+    print("&nbsp;(&nbsp;<i class='fa fa-arrow-circle-up' style='font-size:18px' alt='Uploading' title='You are uploading'></i>&nbsp; <a class='nav-top' href=\"javascript:popout(0)\"onclick=\"window.open('".URLROOT."/peers/popoutseed?id=" . $_SESSION["id"] . "','Seeding','width=350,height=350,scrollbars=yes')\" title='You are Seeding'><font color='#EB7F27'><b>" . $activeseed . "</b></font></a>&nbsp;");
+    print("&nbsp;<i class='fa fa-arrow-circle-down' style='font-size:18px' alt='Downloading' title='You are downloading'></i>&nbsp;<a class='nav-top' href=\"javascript:popout(0)\"onclick=\"window.open('".URLROOT."/peers/popoutleech?id=" . $_SESSION["id"] . "','Seeding','width=350,height=350,scrollbars=yes')\" title='You are Leeching'><font color='#EB7F27'>&nbsp;<b>" . $activeleech . "</b>&nbsp;</font></a>&nbsp;");
+    print("<i class='fa fa-refresh' style='font-size:18px' alt='Connected' title='Indicates if you are connectable'></i>&nbsp; " . $connectable . ")&nbsp;");
 //////connectable yes or know end of mod////////
         if ($_SESSION["control_panel"] == "yes"): ?>
-          &nbsp;&nbsp;<a href="<?php echo URLROOT; ?>/admincp"><font color='#fff'><?php echo Lang::T("STAFFCP") ?></font></a>&nbsp;&nbsp;
-          <?php endif;?>
-          <a href="<?php echo URLROOT; ?>/logout">Logout</a>&nbsp;
+		<?php
+      $arr = DB::run("SELECT * FROM messages WHERE receiver=" . $_SESSION["id"] . " and unread='yes' AND location IN ('in','both')")->fetchAll();
+      $unreadmail = count($arr);
+    if ($unreadmail !== 0) {
+      print("<a href='" . URLROOT . "/messages?type=inbox'><b><font color='red'>$unreadmail</font>&nbsp;<i class='fa fa-envelope' style='font-size:18px' alt='New Message' title='You have a New Message!'></i></b></a>");
+    } else {
+      print("<a href='" . URLROOT . "/messages/overview'><i class='fa fa-envelope' style='font-size:18px' alt='Messages' title='Your Messages!'></i></a>");
+    }
+    ?>
+	
+       &nbsp;<a href="<?php echo URLROOT; ?>/admincp"><b><font color='blue'><?php echo Lang::T("STAFFCP") ?></font></b></a>&nbsp;
+    <?php endif;?>
+	   &nbsp;<a href="<?php echo URLROOT; ?>/logout"><i class="fa fa-sign-out" style="font-size:18px" alt="Logout" title="Logout...to login again ;-)"></i></a>
     <?php endif;?>
     </ul>
   </div>

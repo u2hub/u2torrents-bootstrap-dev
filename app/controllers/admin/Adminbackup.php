@@ -1,14 +1,10 @@
 <?php
-class Adminbackup extends Controller
+class Adminbackup
 {
 
     public function __construct()
     {
-        Auth::user();
-        Auth::isStaff();
-        // $this->userModel = $this->model('User');
-        $this->logsModel = $this->model('Logs');
-        $this->valid = new Validation();
+        $this->session = Auth::user(_ADMINISTRATOR, 2);
     }
 
     public function index()
@@ -71,7 +67,8 @@ class Adminbackup extends Controller
         header("Refresh: 3 ;url=" . URLROOT . "/adminbackup");
         $title = "Back up";
         require APPROOT . '/views/admin/header.php';
-        show_error_msg(Lang::T("SUCCESS"), "Selected Backup Files deleted", 0);
+        Redirect::autolink(URLROOT . '/adminbackup', "Selected Backup Files deleted");
+
         if ($delete_error) {
             echo ("<br><center><b>Has encountered a problem during the deletion</b></center><br><br><br>");
         } else {
@@ -212,4 +209,5 @@ class Adminbackup extends Controller
             fclose($handle);
         }
     }
+
 }

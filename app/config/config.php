@@ -31,6 +31,9 @@ define('SITENAME', 'TorrentTraderMVC');
 define('_SITEDESC', 'A PHP support forum for Torrent Trader');
 define('SITEEMAIL', 'something@email.com'); //Emails will be sent from this address
 define('VERSION', 'PDO');
+// Quick Time
+define('TT_TIME', time());
+define('TT_DATE', date("Y-m-d H:i:s"));
 // Caching settings
 define('CACHE_TYPE', 'disk'); // disk = Save cache to disk, memcache = Use memcache, apc = Use APC, xcache = Use XCache
 define('MEMCACHE_HOST', 'localhost'); // Host memcache is running on
@@ -42,9 +45,9 @@ define('DEFAULTLANG', 'english'); //DEFAULT LANGUAGE ID
 define('DEFAULTTHEME', 'darktheme'); //DEFAULT THEME ID
 define('CHARSET', 'utf-8'); //Site Charset
 define('ANNOUNCELIST', URLROOT . '/announce.php'); //seperate via comma
-define('MEMBERSONLY', false); //MAKE MEMBERS SIGNUP
+define('MEMBERSONLY', true); //MAKE MEMBERS SIGNUP
 define('MEMBERSONLY_WAIT', true); //ENABLE WAIT TIMES FOR BAD RATIO
-define('ALLOWEXTERNAL', false); // Work in Progress  Enable Uploading of external tracked torrents
+define('ALLOWEXTERNAL', true); // Work in Progress  Enable Uploading of external tracked torrents
 define('UPLOADERSONLY', false); //Limit uploading to uploader group only
 define('INVITEONLY', false); //Only allow signups via invite
 define('ENABLEINVITES', true); // Enable invites regardless of INVITEONLY setting
@@ -58,7 +61,7 @@ define('FORUMS_GUESTREAD', false); // Allow / Disallow Guests To Read Forums
 define('OLD_CENSOR', false); // Use the old change to word censor set to true otherwise use the new one.
 define('MAXUSERS', 20000); // Max # of enabled accounts
 define('MAXUSERSINVITE', 50000); // Max # of enabled accounts when inviting
-define('CURRENCYSYMBOL', 'Â£'); // Currency symbol (HTML allowed)
+define('CURRENCYSYMBOL', '£'); // Currency symbol (HTML allowed)
 // seed bonus
 define('BONUSPERTIME', 0.1); // per seeded torrent
 define('ADDBONUS', 3600); // time to add bonus (1 hour)
@@ -80,9 +83,10 @@ define('ALLOWEDIMAGETYPES', array(
 define('SITE_ONLINE', true); //Turn Site on/off
 define('OFFLINEMSG', 'Site is down for a little while');
 define('WELCOMEPM_ON', true); //Auto PM New members
-define('WELCOMEPM_MSG', 'Thank you for registering at our tracker! Please remember to keep your ratio at 1.00 or greater');
+define('WELCOMEPM_MSG', 'Thank you for registering at our tracker! Please remember to keep your ratio at 0.50 or greater');
 define('UPLOADRULES', 'You should also include a .nfo file wherever possible<br />Try to make sure your torrents are well-seeded for at least 24 hours<br />Do not re-release material that is still active');
 //Setup Site Blocks
+define('ISURL', array('login', 'logout', 'signup')); // Dont show blocks on these pages
 define('LEFTNAV', true); //Left Column Enable/Disable
 define('RIGHTNAV', true); // Right Column Enable/Disable
 define('MIDDLENAV', true); // Middle Column Enable/Disable
@@ -162,4 +166,4 @@ define('HNR_SEEDTIME', 172800); // target is to seed for 48 hours
 define('HNR_WARN', 5); // 5 hit & runs then warned
 define('HNR_STOP_DL', 5); // After 5 H & R stop downloading
 define('HNR_BAN', 50); // After 50 H&R they are banned
-define('HNR_DISABLED', TRUE);
+define('HNR_DISABLED', true);

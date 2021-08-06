@@ -1,6 +1,6 @@
 <?php
 if ($_SESSION['loggedin']) {
-    Block::begin(Lang::T("SEARCH"));
+    Style::block_begin(Lang::T("SEARCH"));
     ?>
 
         <!-- content -->
@@ -33,9 +33,9 @@ if ($_SESSION['loggedin']) {
 			<option value="2"><?php echo Lang::T("EXTERNAL_ONLY"); ?></option>
 		</select><br />
 		<?php }?>
-		<button type="submit" class="btn btn-warning center-block" /><?php echo Lang::T("SEARCH"); ?></button>
+		<button type="submit" class="btn ttbtn center-block" /><?php echo Lang::T("SEARCH"); ?></button>
 	</form>
     <!-- end content -->
 
-<?php block::end();
+<?php Style::block_end();
 }

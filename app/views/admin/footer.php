@@ -1,17 +1,31 @@
+<div class='row'>
+<?php
+if (LEFTNAV) { ?>
+<div class="ttbottombar" >
+  <?php require APPROOT . '/views/admin/left.php'; ?>
+</div> <?php
+} ?>
+<?php
+if (RIGHTNAV) {?>
+<div class="ttbottombar">
+    <?php require APPROOT . '/views/admin/right.php'; ?>
 </div>
-<!-- END MIDDLE COLUMN -->
-<!-- START RIGHT COLUMN -->
-    <?php if (RIGHTNAV) {?>
-<div class="col-sm-2">
-<?php include APPROOT.'/views/admin/right.php';?>
+<?php
+} ?>
 </div>
-    <?php }?>
-<!-- END RIGHT COLUMN -->
-</div>
-</div>
-<!-- END MAIN -->
 
-<!-- Footer -->
+</div>
+
+<?php
+if (RIGHTNAV) {?>
+<div class="ttsidebar">
+    <?php require APPROOT . '/views/admin/right.php'; ?>
+</div>
+<?php
+} ?>
+
+</div>
+</div>
 <footer>
 <hr />
   <ul class="list-unstyled text-center">

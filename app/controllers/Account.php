@@ -1,10 +1,9 @@
 <?php
-class Account extends Controller
+class Account
 {
     public function __construct()
     {
-        Auth::user();
-        $this->userModel = $this->model('User');
+        $this->session = Auth::user(0, 2);
     }
 
     public function index()
@@ -14,15 +13,14 @@ class Account extends Controller
 
     public function changepw()
     {
-        $pdo = new Database();
-        $id = (int) $_GET["id"];
-        if ($_SESSION['class'] < 5 && $id != $_SESSION['id']) {
-            Redirect::autolink(URLROOT . "/index", Lang::T("Sorry Staff only"));
+        $id = (int) Input::get("id");
+        if ($_SESSION['class'] < _MODERATOR && $id != $_SESSION['id']) {
+            Redirect::autolink(URLROOT . "/index", Lang::T("NO_PERMISSION"));
         }
 
         if ($_POST['do'] == "newpassword") {
-            $chpassword = $_POST['chpassword'];
-            $passagain = $_POST['passagain'];
+            $chpassword = Input::get('chpassword');
+            $passagain = Input::get('passagain');
             if ($chpassword != "") {
                 if (strlen($chpassword) < 6) {
                     $message = Lang::T("PASS_TOO_SHORT");
@@ -31,73 +29,68 @@ class Account extends Controller
                     $message = Lang::T("PASSWORDS_NOT_MATCH");
                 }
                 $chpassword = password_hash($chpassword, PASSWORD_BCRYPT);
-                $secret = mksecret();
+                $secret = Helper::mksecret();
             }
             if ((!$chpassword) || (!$passagain)) {
-                $message = "You must enter something!";
+                $message = Lang::T("YOU_DID_NOT_ENTER_ANYTHING");
             }
             
-            $this->userModel->updateUserPasswordSecret($chpassword, $secret, $id);
+            Users::updateUserPasswordSecret($chpassword, $secret, $id);
 
             if (!$message) {
-                Session::flash('info', Lang::T("PASSWORD_CHANGED_OK"), URLROOT . "/logout");
+                Redirect::autolink(URLROOT . "/logout", Lang::T("PASSWORD_CHANGED_OK"));
             } else {
-                Session::flash('info', $message, URLROOT . "/account/changepw?id=$id");
+                Redirect::autolink(URLROOT . "/account/changepw?id=$id", $message);
             }
-            die();
         }
 
         $data = [
             'id' => $id,
         ];
-        $this->view('user/changepass', $data, 'user');
+        View::render('user/changepass', $data, 'user');
     }
 
     public function email()
     {
-        $id = (int) $_GET["id"];
+        $id = (int) Input::get("id");
         if ($id != $_SESSION['id']) {
-            Redirect::autolink(URLROOT . "/index", Lang::T("You dont have permission"));
+            Redirect::autolink(URLROOT . "/index", Lang::T("NO_PERMISSION"));
         }
 
-        if ($_POST) {
+        if (Input::exist()) {
             $email = $_POST["email"];
-            $sec = mksecret();
+            $sec = Helper::mksecret();
             $obemail = rawurlencode($email);
             $sitename = URLROOT;
-            $body = <<<EOD
-You have requested that your user profile (username {$_SESSION["username"]})
-on {$sitename} should be updated with this email address ($email) as
-user contact.
-If you did not do this, please ignore this email. The person who entered your
-email address had the IP address {$_SERVER["REMOTE_ADDR"]}. Please do not reply.
-To complete the update of your user profile, please follow this link:
-{$sitename}/confirmemail?id={$_SESSION["id"]}&secret=$sec&email=$obemail
-Your new email address will appear in your profile after you do this. Otherwise
-your profile will remain unchanged.
-EOD;
+
+            $body = file_get_contents(APPROOT . "/views/emails/changeemail.php");
+            $body = str_replace("%usersname%", $_SESSION["username"], $body);
+            $body = str_replace("%sitename%", $sitename, $body);
+            $body = str_replace("%usersip%", $_SERVER["REMOTE_ADDR"], $body);
+            $body = str_replace("%usersid%", $_SESSION["id"], $body);
+            $body = str_replace("%userssecret%", $sec, $body);
+            $body = str_replace("%obemail%", $obemail, $body);
+            $body = str_replace("%newemail%", $email, $body);
 
             $TTMail = new TTMail();
             $TTMail->Send($email, "$sitename profile update confirmation", $body, "From: " . SITEEMAIL . "", "-f" . SITEEMAIL . "");
-            $this->userModel->updateUserEditSecret($sec, $_SESSION['id']);
-            Redirect::autolink(URLROOT . "/profile?id=$id", Lang::T("Email Edited"));
+            Users::updateUserEditSecret($sec, $_SESSION['id']);
+            Redirect::autolink(URLROOT . "/profile?id=$id", Lang::T("EMAIL_CHANGE_SEND"));
         }
-
-        $user = $this->userModel->selectUserEmail($id);
+        $user = Users::selectUserEmail($id);
         $data = [
             'id' => $id,
             'email' => $user['email'],
         ];
-        $this->view('user/changeemail', $data, 'user');
+        View::render('user/changeemail', $data, 'user');
     }
 
     public function avatar()
     {
-        $id = $_GET["id"];
+        $id = (int) Input::get("id");
         if ($id != $_SESSION['id']) {
-            Redirect::autolink(URLROOT . "/index", Lang::T("Its not your account"));
+            Redirect::autolink(URLROOT . "/index", Lang::T("NO_PERMISSION"));
         }
-        $id = $_GET['id'];
         if (isset($_FILES["upfile"])) {
             $upload = new Uploader($_FILES["upfile"]);
             $upload->must_be_image();
@@ -106,18 +99,19 @@ EOD;
             $upload->encrypt_name();
             $upload->path("uploads/avatars");
             if (!$upload->upload()) {
-                Session::flash('info', "Upload error: " . $upload->get_error() . " image should be 90px x 90px or lower", URLROOT . "/profile/edit?id=$id");
+                Redirect::autolink(URLROOT . "/profile/edit?id=$id", "Upload error: " . $upload->get_error() . " image should be 90px x 90px or lower");
             } else {
                 $avatar = URLROOT . "/uploads/avatars/" . $upload->get_name();
-                $this->userModel->updateUserAvatar($avatar, $id);
-                Session::flash('info', "Avatar Upload OK", URLROOT . "/profile/edit?id=$id");
+                Users::updateUserAvatar($avatar, $id);
+                Redirect::autolink(URLROOT . "/profile/edit?id=$id", Lang::T("UP_AVATAR")." OK");
+                
             }
 
         }
         $data = [
             'id' => $id,
         ];
-        $this->view('user/avatar', $data, 'user');
+        View::render('user/avatar', $data, 'user');
     }
 
 }

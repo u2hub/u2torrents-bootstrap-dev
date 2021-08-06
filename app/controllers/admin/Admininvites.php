@@ -1,14 +1,10 @@
 <?php
-class Admininvites extends Controller
+class Admininvites
 {
 
     public function __construct()
     {
-        Auth::user();
-        Auth::isStaff();
-        $this->userModel = $this->model('User');
-        $this->logsModel = $this->model('Logs');
-        $this->valid = new Validation();
+        $this->session = Auth::user(_MODERATOR, 2);
     }
 
     public function index()
@@ -16,7 +12,7 @@ class Admininvites extends Controller
         $do = $_GET['do']; // todo
         if ($do == "del") {
             if (!@count($_POST["users"])) {
-                show_error_msg(Lang::T("ERROR"), "Nothing Selected.", 1);
+                Redirect::autolink(URLROOT . '/admininvites', "Nothing Selected.");
             }
             $ids = array_map("intval", $_POST["users"]);
             $ids = implode(", ", $ids);
@@ -25,7 +21,7 @@ class Admininvites extends Controller
                 # We remove the invitee from the inviter and give them back there invite.
                 $invitees = str_replace("$row[id] ", "", $row["invitees"]);
                 DB::run("UPDATE `users` SET `invites` = `invites` + 1, `invitees` = '$invitees' WHERE `id` = '$row[invited_by]'");
-                $this->userModel->deleteuser($row['id']);
+                Users::deleteuser($row['id']);
             }
             Redirect::autolink(URLROOT . "/Admininvites", "Entries Deleted");
         }
@@ -39,15 +35,15 @@ class Admininvites extends Controller
             'pagerbottom' => $pagerbottom,
             'res' => $res,
         ];
-        $this->view('invite/admin/invited', $data, 'admin');
+        View::render('invite/admin/invited', $data, 'admin');
     }
     
     public function pending()
     {
-        $do = $_GET['do']; // todo
+        $do = $_POST['do']; // todo
         if ($do == "del") {
             if (!@count($_POST["users"])) {
-                show_error_msg(Lang::T("ERROR"), "Nothing Selected.", 1);
+                Redirect::autolink(URLROOT . '/admininvites/pending', "Nothing Selected.");
             }
             $ids = array_map("intval", $_POST["users"]);
             $ids = implode(", ", $ids);
@@ -70,7 +66,7 @@ class Admininvites extends Controller
             'pagerbottom' => $pagerbottom,
             'res' => $res,
         ];
-        $this->view('invite/admin/pendinginvite', $data, 'admin');
+        View::render('invite/admin/pendinginvite', $data, 'admin');
     }
 
 }

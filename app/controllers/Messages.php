@@ -1,54 +1,58 @@
 <?php
-class Messages extends Controller
+class Messages
 {
 
     public function __construct()
     {
-        Auth::user();
-        $this->messageModel = $this->model('Message');
-        $this->valid = new Validation();
+        $this->session = Auth::user(0, 2);
     }
 
-    public function index()
+    public function overview()
     {
-        $arr = $this->messageModel->countmsg();
+        $arr = Message::countmsg();
         $data = [
-            'title' => 'Messages',
+            'title' => Lang::T('MY_MESSAGES'),
             'inbox' => $arr['inbox'],
             'unread' => $arr['unread'],
             'outbox' => $arr['outbox'],
             'draft' => $arr['draft'],
             'template' => $arr['template'],
         ];
-        $this->view('message/overview', $data, 'user');
+        View::render('message/overview', $data, 'user');
     }
 
     public function create()
     {
-        $id = $_GET['id']; // user id
+        $id = (int) Input::get('id');
         $data = [
-            'title' => 'Messages',
+            'title' => Lang::T('ACCOUNT_SEND_MSG'),
             'id' => $id,
         ];
-        $this->view('message/create', $data, 'user');
+        View::render('message/create', $data, 'user');
     }
 
     public function submit()
     {
+        $type = $_GET['type'];
         $receiver = $_POST['receiver'];
-        $subject = $_POST['subject'];
-        $body = $_POST['body'];
+        $subject = Input::get('subject');
+        $body = Input::get('body');
         if ($body == "") {
-            Session::flash('info', "Body cannot be empty!", URLROOT . "/forums");
+            Redirect::autolink(URLROOT . "/messages/overview", Lang::T('EMPTY_BODY'));
         }
         if ($receiver == "") {
-            Session::flash('info', "Receiver cannot be empty!", URLROOT . "/forums");
+            Redirect::autolink(URLROOT . "/messages/overview", Lang::T('EMPTY_RECEIVER'));
         }
         if ($subject == "") {
-            Session::flash('info', "Subject cannot be empty!", URLROOT . "/forums");
+            Redirect::autolink(URLROOT . "/messages/overview", Lang::T('EMPTY_SUBJECT'));
         }
-        // Button Switch
-        $this->insertbytype($_REQUEST['Update'], $receiver, $subject, $body);
+        
+        if ($type == 'reply') {
+            $this->insertbytype($_REQUEST['Update'], $receiver, $subject, $body);
+        } else {
+            $receiver = Users::getIdByUsername($receiver);
+            $this->insertbytype($_REQUEST['Update'], $receiver['id'], $subject, $body);
+        }
     }
 
     public function insertbytype($type, $receiver, $subject, $body)
@@ -56,19 +60,19 @@ class Messages extends Controller
         switch ($type) {
             case 'create':
                 if (isset($_POST['save'])) {
-                    $this->messageModel->insertmessage($_SESSION['id'], $receiver, TimeDate::get_date_time(), $subject, $body, 'yes', 'both');
+                    Message::insertmessage($_SESSION['id'], $receiver, TimeDate::get_date_time(), $subject, $body, 'yes', 'both');
                 } else {
-                    $this->messageModel->insertmessage($_SESSION['id'], $receiver, TimeDate::get_date_time(), $subject, $body, 'yes', 'in');
+                    Message::insertmessage($_SESSION['id'], $receiver, TimeDate::get_date_time(), $subject, $body, 'yes', 'in');
                 }
-                Session::flash('info', "yeah i posted a new post!", URLROOT . "/messages/outbox");
+                Redirect::autolink(URLROOT . "/messages?type=outbox", Lang::T('MESSAGES_SENT'));
                 break;
             case 'draft':
-                $this->messageModel->insertmessage($_SESSION['id'], $receiver, TimeDate::get_date_time(), $subject, $body, 'no', 'draft');
-                Session::flash('info', "yeah i posted a draft!", URLROOT . "/messages/draft");
+                Message::insertmessage($_SESSION['id'], $receiver, TimeDate::get_date_time(), $subject, $body, 'no', 'draft');
+                Redirect::autolink(URLROOT . "/messages?type=draft", Lang::T('SAVED_DRAFT'));
                 break;
             case 'template':
-                $this->messageModel->insertmessage($_SESSION['id'], $receiver, TimeDate::get_date_time(), $subject, $body, 'no', 'template');
-                Session::flash('info', "yeah i posted a template!", URLROOT . "/messages/templates");
+                Message::insertmessage($_SESSION['id'], $receiver, TimeDate::get_date_time(), $subject, $body, 'no', 'template');
+                Redirect::autolink(URLROOT . "/messages?type=templates", Lang::T('SAVED_TEMPLATE'));
                 break;
         }
     }
@@ -76,65 +80,37 @@ class Messages extends Controller
     public function read()
     {
         // Get Message Id from url
-        $id = (int) $_GET['id'];
+        $id = (int) Input::get('id');
         // Get Page from url
-        $inbox = isset($_GET['inbox']) ? $_GET['inbox'] : null;
-        $outbox = isset($_GET['outbox']) ? $_GET['outbox'] : null;
-        $draft = isset($_GET['draft']) ? $_GET['draft'] : null;
-        $templates = isset($_GET['templates']) ? $_GET['templates'] : null;
+        $type = isset($_GET['type']) ? $_GET['type'] : null;
         // Set button condition
-        if (isset($templates)) {
-            $button = "
-        <a href='" . URLROOT . "/messages/update?type=templates&amp;id=$id'><button  class='btn btn-sm btn-success'>Edit</button></a>
-        ";
-        } elseif (isset($draft)) {
-            $button = "
-        <a href='" . URLROOT . "/messages/update?type=draft&amp;id=$id'><button  class='btn btn-sm btn-success'>Edit</button></a>
-        ";
-        } elseif (isset($outbox)) {
-            $button = "
-            <a href='" . URLROOT . "/messages/reply?type=outbox&amp;id=$id'><button  class='btn btn-sm btn-success'>Reply</button></a>
-            <a href='" . URLROOT . "/messages/update?type=outbox&amp;id=$id'><button  class='btn btn-sm btn-success'>Edit</button></a>
-            ";
-        } else {
-            $button = "
-            <a href='" . URLROOT . "/messages/reply?type=inbox&amp;id=$id'><button  class='btn btn-sm btn-success'>Reply</button></a>
-            <a href='" . URLROOT . "/messages/update?type=inbox&amp;id=$id'><button  class='btn btn-sm btn-success'>Edit</button></a>
-            ";
+        if ($type == 'templates' || $type == 'draft') {
+            $button = "<a href='" . URLROOT . "/messages/update?type=$type&id=$id'><button  class='btn btn-sm btn-success'>Edit</button></a>";
+        } elseif ($type == 'inbox' || $type == 'outbox') {
+            $button = " <a href='" . URLROOT . "/messages/reply?type=$type&id=$id'><button  class='btn btn-sm btn-success'>Reply</button></a>
+                        <a href='" . URLROOT . "/messages/update?type=$type&id=$id'><button  class='btn btn-sm btn-success'>Edit</button></a>";
         }
         // get row
         $res = DB::run("SELECT * FROM messages WHERE id=$id");
         $arr = $res->fetch(PDO::FETCH_ASSOC);
-
+        // check if user involved in conversation
         if ($arr["sender"] != $_SESSION['id'] && $arr["receiver"] != $_SESSION['id']) {
-            Session::flash('info', "Not your Message!", URLROOT);
+            Redirect::autolink(URLROOT, Lang::T('NO_PERMISSION'));
         }
-
         // mark read
         if ($arr["unread"] == "yes" && $arr["receiver"] == $_SESSION['id']) {
-            DB::run("UPDATE messages SET `unread` = 'no' WHERE `id` = $arr[id] AND `receiver` = $_SESSION[id]");
+            Message::updateRead($arr['id'], $_SESSION['id']);
         }
-        // get history
-        $arr4 = DB::run("SELECT * FROM messages WHERE subject=? AND added <=?  ORDER BY id DESC ", [$arr["subject"], $arr['added']]);
-        // $lastposter get sender of message
-        $arr5 = DB::run("SELECT username FROM users WHERE id=?", [$arr["sender"]])->fetch();
-        $lastposter = "<a href='" . URLROOT . "/profile?id=" . $arr["sender"] . "'><b>" . Users::coloredname($arr5["username"]) . "</b></a>";
-        if ($arr["sender"] == 0) {
-            $lastposter = "<font class='error'><b>System</b></font>";
-        }
-
         $data = [
-            'title' => 'Messages',
+            'title' => Lang::T('MESSAGE'),
             'id' => $id,
             'button' => $button,
-            'arr' => $arr,
-            'lastposter' => $lastposter,
-            'arr4' => $arr4,
+            'sender' => $arr['sender'],
             'subject' => $arr['subject'],
             'added' => $arr['added'],
             'msg' => $arr['msg'],
         ];
-        $this->view('message/read', $data, 'user');
+        View::render('message/read', $data, 'user');
     }
 
     public function reply()
@@ -143,12 +119,15 @@ class Messages extends Controller
         $url_id = isset($_GET['id']) ? $_GET['id'] : null;
         $type = isset($_GET['type']) ? $_GET['type'] : null;
 
-        $stmt = DB::run('SELECT * FROM messages WHERE id = ?', [$url_id]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        $row = Message::getallmsg($url_id);
         if ($type == 'inbox') {
             $arr2 = DB::run("SELECT username,id FROM users WHERE id=?", [$row['sender']])->fetch(PDO::FETCH_LAZY);
         } else {
             $arr2 = DB::run("SELECT username,id FROM users WHERE id=?", [$row['receiver']])->fetch(PDO::FETCH_LAZY);
+        }
+        // check if user involved in conversation
+        if ($row["sender"] != $_SESSION['id'] && $row["receiver"] != $_SESSION['id']) {
+            Redirect::autolink(URLROOT, Lang::T('NO_PERMISSION'));
         }
         $username = $arr2["username"];
         $msg = $row['msg'];
@@ -160,192 +139,90 @@ class Messages extends Controller
             'subject' => $row['subject'],
             'id' => $row['id'],
         ];
-        $this->view('message/reply', $data, 'user');
+        View::render('message/reply', $data, 'user');
     }
 
     public function update()
     {
-        // Get Page from url
+        $url_id = $_GET['id'];
+        $row = Message::getallmsg($url_id);
+        // check if user involved in conversation
+        if ($row["sender"] != $_SESSION['id'] && $row["receiver"] != $_SESSION['id']) {
+            Redirect::autolink(URLROOT, Lang::T('NO_PERMISSION'));
+        }
+        if (!$row) {
+            Redirect::autolink(URLROOT . '/messages?type=inbox', Lang::T("INVALID_ID"));
+        }
+        // Submit edit
         if (isset($_GET['id'])) {
             if (!empty($_POST)) {
                 $id = isset($_GET['id']) ? $_GET['id'] : null;
-                $subject = isset($_POST['subject']) ? $_POST['subject'] : '';
                 $msg = isset($_POST['msg']) ? $_POST['msg'] : '';
                 // Update the record
-                $stmt = DB::run('UPDATE messages SET subject = ?, msg = ? WHERE id = ?', [$subject, $msg, $id]);
-                Session::flash('info', "Edited Successfully!", URLROOT . "/messages/inbox");
+                Message::updateMessage($msg, $id);
+                Redirect::autolink(URLROOT . '/messages?type=inbox', "Edited Successfully !");
             }
-
-            $stmt = DB::run('SELECT * FROM messages WHERE id = ?', [$_GET['id']]);
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
-            $msg = $row['msg'];
-            if (!$row) {
-                Session::flash('info', "Message does not exist with that ID!", URLROOT . "/messages/inbox");
-            }
-            // get the username
-            $stmt7 = DB::run('SELECT * FROM messages WHERE id = ?', [$_GET['id']]);
-            $row7 = $stmt7->fetch(PDO::FETCH_ASSOC);
-            $arr27 = DB::run("SELECT username FROM users WHERE id=?", [$row7['receiver']])->fetch(PDO::FETCH_LAZY);
-            $username = $arr27["username"];
-            $ress1 = DB::run("SELECT * FROM `messages` WHERE `sender` = $_SESSION[id] AND `location` = 'template' ORDER BY `subject`");
         }
 
         $data = [
-            'username' => $username,
-            'msg' => $msg,
+            'title' => 'Edit Message',
+            'msg' => $row['msg'],
             'subject' => $row['subject'],
             'id' => $row['id'],
         ];
-        $this->view('message/edit', $data, 'user');
+        View::render('message/edit', $data, 'user');
     }
 
-    public function inbox()
+    public function index()
     {
-        // Mark or Delete
-        $do = $_REQUEST["do"];
-        if ($do == "del") {
-            if ($_POST["read"]) {
-                if (!@count($_POST["del"])) {
-                    Session::flash('info', Lang::T("NOTHING_SELECTED"), URLROOT . "/messages/inbox");
-                }
-                $ids = array_map("intval", $_POST["del"]);
-                $ids = implode(", ", $ids);
-                DB::run("UPDATE messages SET `unread` = 'no' WHERE `id` IN ($ids)");
-            } else {
-                if (!@count($_POST["del"])) {
-                    Session::flash('info', Lang::T("NOTHING_SELECTED"), URLROOT . "/messages/inbox");
-                }
 
-                $ids = array_map("intval", $_POST["del"]);
-                $ids = implode(", ", $ids);
+        $type = isset($_GET['type']) ? $_GET['type'] : null;
+
+        // Get page array
+        $arr = Message::msgPagination($type);
+        // Now pass to sql and view
+        $res = DB::run("SELECT * FROM messages WHERE $arr[where] $arr[limit]");
+        $data = [
+            'title' => $type,
+            'pagename' => $arr['pagename'],
+            'pagerbottom' => $arr['pagerbottom'],
+            'mainsql' => $res,
+        ];
+        View::render('message/index', $data, 'user');
+    }
+
+    public function delete()
+    {
+        $type = isset($_GET['type']) ? $_GET['type'] : null;
+
+        if ($_POST["read"]) {
+            //var_dump($_POST);   die();
+            if (!isset($_POST["del"])) {
+                Redirect::autolink(URLROOT . "/messages?type=$type", Lang::T("NOTHING_SELECTED"));
+            }
+            $ids = array_map("intval", $_POST["del"]);
+            $ids = implode(", ", $ids);
+            DB::run("UPDATE messages SET `unread` = 'no' WHERE `id` IN ($ids)");
+            Redirect::autolink(URLROOT . "/messages?type=$type", Lang::T("COMPLETED"));
+        } else {
+            if (!isset($_POST["del"])) {
+                Redirect::autolink(URLROOT . "/messages?type=$type", Lang::T("NOTHING_SELECTED"));
+            }
+            $ids = array_map("intval", $_POST["del"]);
+            $ids = implode(", ", $ids);
+            if ($type == 'inboxbox') {
                 DB::run("DELETE FROM messages WHERE `location` = 'in' AND `receiver` = $_SESSION[id] AND `id` IN ($ids)");
                 DB::run("UPDATE messages SET `location` = 'out' WHERE `location` = 'both' AND `receiver` = $_SESSION[id] AND `id` IN ($ids)");
-            }
-            Session::flash('info', "Action Completed", URLROOT . "/messages/inbox");
-            die;
-        }
-
-        // Get Page from url
-        $inbox = isset($_GET['inbox']) ? $_GET['inbox'] : null;
-        $pagename = 'Inbox';
-        $where = "`receiver` = $_SESSION[id] AND `location` IN ('in','both') ORDER BY added ASC";
-        // Pagination
-        $row = DB::run("SELECT COUNT(*) FROM messages WHERE $where")->fetch(PDO::FETCH_LAZY);
-        $count = $row[0];
-        $perpage = 50;
-        list($pagertop, $pagerbottom, $limit) = pager($perpage, $count, "messages/inbox&amp;");
-
-        // Set database query for views
-        $res = DB::run("SELECT * FROM messages WHERE $where $limit");
-        $data = [
-            'pagename' => $pagename,
-            'pagerbottom' => $pagerbottom,
-            'mainsql' => $res,
-        ];
-        $this->view('message/inbox', $data, 'user');
-    }
-
-    public function outbox()
-    {
-        // Mark or Delete
-        $do = $_REQUEST["do"];
-        if ($do == "del") {
-            if (!empty($_POST)) {
-                if (!@count($_POST["del"])) {
-                    Session::flash('info', Lang::T("NOTHING_SELECTED"), URLROOT . "/messages/inbox");
-                }
-                $ids = array_map("intval", $_POST["del"]);
-                $ids = implode(", ", $ids);
+            } elseif ($type == 'outbox') {
                 DB::run("UPDATE messages SET `location` = 'in' WHERE `location` = 'both' AND `sender` = $_SESSION[id] AND `id` IN ($ids)");
                 DB::run("DELETE FROM messages WHERE `location` IN ('out', 'draft', 'template') AND `sender` = $_SESSION[id] AND `id` IN ($ids)");
-            }
-            Session::flash('info', "Action Completed", URLROOT . "/messages/outbox");
-            die;
-        }
-
-        $pagename = 'Outbox';
-        $where = "`sender` = $_SESSION[id] AND `location` IN ('out','both') ORDER BY added ASC";
-        // Pagination
-        $row = DB::run("SELECT COUNT(*) FROM messages WHERE $where")->fetch(PDO::FETCH_LAZY);
-        $count = $row[0];
-        $perpage = 50;
-        list($pagertop, $pagerbottom, $limit) = pager($perpage, $count, "messages/outbox&amp;");
-        // Set database query for views
-        $res = DB::run("SELECT * FROM messages WHERE $where $limit");
-        $data = [
-            'pagename' => $pagename,
-            'pagerbottom' => $pagerbottom,
-            'mainsql' => $res,
-        ];
-        $this->view('message/outbox', $data, 'user');
-    }
-
-    public function templates()
-    {
-        // Mark or Delete
-        $do = $_REQUEST["do"];
-        if ($do == "del") {
-            if ($_POST) {
-                if (!@count($_POST["del"])) {
-                    Session::flash('info', Lang::T("NOTHING_SELECTED"), URLROOT . "/messages/templates");
-                }
-                $ids = array_map("intval", $_POST["del"]);
-                $ids = implode(", ", $ids);
+            } elseif ($type == 'templates') {
                 DB::run("DELETE FROM messages WHERE `sender` = $_SESSION[id] AND `location` = 'template' AND `id` IN ($ids)");
-            }
-            Session::flash('info', "Action Completed", URLROOT . "/messages/templates");
-            die;
-        }
-
-        $pagename = 'Templates';
-        $where = "`sender` = $_SESSION[id] AND `location` = 'template'";
-        // Pagination
-        $row = DB::run("SELECT COUNT(*) FROM messages WHERE $where")->fetch(PDO::FETCH_LAZY);
-        $count = $row[0];
-        $perpage = 50;
-        list($pagertop, $pagerbottom, $limit) = pager($perpage, $count, "messages/templates&amp;");
-        // Set database query for views
-        $res = DB::run("SELECT * FROM messages WHERE $where $limit");
-        $data = [
-            'res' => $res,
-            'pagename' => $pagename,
-            'pagerbottom' => $pagerbottom,
-        ];
-        $this->view('message/template', $data, 'user');
-    }
-
-    public function draft()
-    {
-        // Mark or Delete
-        $do = $_REQUEST["do"];
-        if ($do == "del") {
-            if ($_POST) {
-                if (!@count($_POST["del"])) {
-                    Session::flash('info', Lang::T("NOTHING_SELECTED"), URLROOT . "/messages/draft");
-                }
-                $ids = array_map("intval", $_POST["del"]);
-                $ids = implode(", ", $ids);
+            } elseif ($type == 'draft') {
                 DB::run("DELETE FROM messages WHERE `sender` = $_SESSION[id] AND `location` = 'draft' AND `id` IN ($ids)");
             }
-            Session::flash('info', "Action Completed", URLROOT . "/messages/draft");
+            Redirect::autolink(URLROOT . "/messages?type=$type", Lang::T("COMPLETED"));
             die;
         }
-
-        $pagename = 'Draft';
-        $where = "`sender` = $_SESSION[id] AND `location` = 'draft'";
-        // Pagination
-        $row = DB::run("SELECT COUNT(*) FROM messages WHERE $where")->fetch(PDO::FETCH_LAZY);
-        $count = $row[0];
-        $perpage = 50;
-        list($pagertop, $pagerbottom, $limit) = pager($perpage, $count, "messages/draft&amp;");
-        // Set database query for views
-        $res = DB::run("SELECT * FROM messages WHERE $where $limit");
-        $data = [
-            'res' => $res,
-            'pagename' => $pagename,
-            'pagerbottom' => $pagerbottom,
-        ];
-        $this->view('message/draft', $data, 'user');
     }
-
 }

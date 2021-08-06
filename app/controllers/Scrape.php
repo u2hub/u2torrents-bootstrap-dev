@@ -1,13 +1,11 @@
 <?php
-class Scrape extends Controller
+class Scrape
 {
     public function __construct()
     {
-        Auth::user();
-        $this->torrentModel = $this->model('Torrents');
-        $this->valid = new Validation();
-        $this->logsModel = $this->model('Logs');
+        $this->session = Auth::user(0, 0);
     }
+    
     public function index()
     {
         // check if client can handle gzip
@@ -31,7 +29,7 @@ class Scrape extends Controller
                 } elseif (strlen($info_hash) != 40) {
                     continue;
                 }
-                $infohash[] = sqlesc(strtolower($info_hash));
+                $infohash[] = strtolower($info_hash);
             }
         }
 
@@ -58,7 +56,7 @@ class Scrape extends Controller
 
     public function external()
     {
-        $id = $_GET['id'];
+        $id = Input::get('id');
         $resu = DB::run("SELECT id, info_hash FROM torrents WHERE external = 'yes' AND id = $id");
         while ($rowu = $resu->fetch(PDO::FETCH_ASSOC)) {
             $torrent = new Torrent(TORRENTDIR . "/$rowu[id].torrent");

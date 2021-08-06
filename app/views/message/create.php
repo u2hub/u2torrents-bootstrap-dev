@@ -1,12 +1,10 @@
-<?php include APPROOT.'/views/message/messagenavbar.php'; ?>
+<?php usermenu($_SESSION['id']);
+include APPROOT.'/views/message/messagenavbar.php'; ?><br>
 <form name="form" action="<?php echo URLROOT; ?>/messages/submit" method="post">
 <center>
-    <label for="reciever">Reciever:</label>&nbsp;
-    <select name="receiver">
-    <?php
-    Helper::echouser($data['id']);
-    ?>
-    </select><br>
+    <label for="receiver">Receiver:</label>&nbsp;
+    <input type="text" id="search-box" name="receiver" autocomplete="off" placeholder="User Name" />
+    <div id="suggesstion-box"></div><br>
     
     <label for="template">Template:</label>&nbsp;
     <select name="template">
@@ -14,14 +12,14 @@
     </select><br>
     
     <label for="subject">Subject:</label>&nbsp;
-    <input type="text" name="subject" size="50" placeholder="Subject" id="subject">
+    <input type="text" name="subject" size="50" placeholder="Subject" id="subject"><br>
     </center>
     <?php print textbbcode("form", "body", "$body");?><br>
 <center>
-    <button type="submit" class="btn-sm btn-warning" name="Update" value="create">Create</button>&nbsp;
+    <button type="submit" class="btn-sm ttbtn" name="Update" value="create">Create</button>&nbsp;
     <label>Save Copy In Outbox</label>
     <input type="checkbox" name="save" checked='Checked'>&nbsp;
-    <button type="submit" class="btn btn-sm btn-warning" name="Update" value="draft">Draft</button>
-    <button type="submit" class="btn btn-sm btn-warning" name="Update" value="template">Template</button>
+    <button type="submit" class="btn btn-sm ttbtn" name="Update" value="draft">Draft</button>
+    <button type="submit" class="btn btn-sm ttbtn" name="Update" value="template">Template</button>
     </center>
     </form>

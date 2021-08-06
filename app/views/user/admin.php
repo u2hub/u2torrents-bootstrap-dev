@@ -26,7 +26,7 @@ foreach ($data['selectuser'] as $selectedid):
         print("<br>" .Lang::T("CLASS") . ": <br><select name='class'>");
         $maxclass = $_SESSION["class"] + 1;
         for ($i = 1; $i < $maxclass; ++$i) {
-            print("<option value='$i' " . ($selectedid["class"] == $i ? " selected='selected'" : "") . ">$prefix" . get_user_class_name($i) . "\n");
+            print("<option value='$i' " . ($selectedid["class"] == $i ? " selected='selected'" : "") . ">$prefix" . Groups::get_user_class_name($i) . "\n");
         }
             print("</select><br>");
         }
@@ -56,7 +56,7 @@ foreach ($data['selectuser'] as $selectedid):
 </div>
 
 <?php
-print("<center><button type='submit' class='btn btn-sm btn-warning' value='" . Lang::T("SUBMIT") . "' />Submit</button></center>");
+print("<center><button type='submit' class='btn btn-sm ttbtn' value='" . Lang::T("SUBMIT") . "' />Submit</button></center>");
  endforeach;?>
 </form>
 </div>

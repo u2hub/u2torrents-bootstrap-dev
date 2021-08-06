@@ -1,20 +1,15 @@
 <?php
-class Adminpeers extends Controller
+class Adminpeers
 {
 
     public function __construct()
     {
-        Auth::user();
-        Auth::isStaff();
-        // $this->userModel = $this->model('User');
-        $this->logsModel = $this->model('Logs');
-        $this->valid = new Validation();
+        $this->session = Auth::user(_MODERATOR, 2);
     }
 
     public function index()
     {
         $count1 = number_format(get_row_count("peers"));
-        //$count = DB::run("SELECT COUNT(*) FROM peers")->fetchColumn();
         $peersperpage = 50;
         list($pagertop, $pagerbottom, $limit) = pager($peersperpage, $count1, "/adminpeers?");
 
@@ -26,6 +21,7 @@ class Adminpeers extends Controller
             'pagerbottom' => $pagerbottom,
             'result' => $result
         ];
-        $this->view('peers/admin/index', $data, 'admin');
+        View::render('peers/admin/index', $data, 'admin');
    }
+
 }

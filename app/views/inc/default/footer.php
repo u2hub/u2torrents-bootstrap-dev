@@ -1,15 +1,36 @@
+<?php
+if (MIDDLENAV) {?>
+  <?php Blocks::middle();
+}?>
+
+<div class='row'>
+<?php
+if (LEFTNAV) { ?>
+<div class="ttbottombar" >
+  <?php Blocks::left();?>
+</div> <?php
+} ?>
+<?php
+if (RIGHTNAV) {?>
+<div class="ttbottombar">
+    <?php Blocks::right();?>
 </div>
-<!-- END MIDDLE COLUMN -->
-<!-- START RIGHT COLUMN -->
-<?php if (RIGHTNAV) {?>
-  <div class="col-sm-2">
-        <?php Block::right();?>
-    </div>
-    <?php }?>
-    <!-- END RIGHT COLUMN -->
+<?php
+} ?>
+</div>
+
+</div>
+
+<?php
+if (RIGHTNAV) {?>
+<div class="ttsidebar">
+    <?php Blocks::right();?>
+</div>
+<?php
+} ?>
+
 </div>
 </div>
-<!-- END MAIN -->
 <!-- Footer -->
 <footer>
 <hr />
@@ -48,7 +69,30 @@ function myFunction() {
   }
 }
 </script>
+<script>
+$(document).ready(function(){
+	$("#search-box").keyup(function(){
+		$.ajax({
+		type: "POST",
+		url: "<?php echo URLROOT; ?>/ajax",
+		data:'keyword='+$(this).val(),
+		beforeSend: function(){
+			$("#search-box").css("background","#FFF url(<?php echo URLROOT; ?>/LoaderIcon.gif) no-repeat 165px");
+		},
+		success: function(data){
+			$("#suggesstion-box").show();
+			$("#suggesstion-box").html(data);
+			$("#search-box").css("background","#FFF");
+		}
+		});
+	});
+});
 
+function userCountry(val) {
+$("#search-box").val(val);
+$("#suggesstion-box").hide();
+}
+</script>
   </body>
 </html>
 <?php ob_end_flush();?>

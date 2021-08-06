@@ -1,22 +1,42 @@
-</div>
-<!-- END MIDDLE COLUMN -->
-<!-- START RIGHT COLUMN -->
-    <?php if (RIGHTNAV){ ?>
-<div class="col-sm-2">
-    <?php Block::right(); ?>
-</div>
-    <?php } ?>
-<!-- END RIGHT COLUMN -->
-</div>
-</div>
-<!-- END MAIN -->
+<?php
+if (MIDDLENAV) {?>
+  <?php Blocks::middle();
+}?>
 
+<div class='row'>
+<?php
+if (LEFTNAV) { ?>
+<div class="ttbottombar" >
+  <?php Blocks::left();?>
+</div> <?php
+} ?>
+<?php
+if (RIGHTNAV) {?>
+<div class="ttbottombar">
+    <?php Blocks::right();?>
+</div>
+<?php
+} ?>
+</div>
+
+</div>
+
+<?php
+if (RIGHTNAV) {?>
+<div class="ttsidebar">
+    <?php Blocks::right();?>
+</div>
+<?php
+} ?>
+
+</div>
+</div>
 <!-- Footer -->
 <footer>
   <table class="card-footer">
   <tbody>
     <tr>
-      <th scope="col">Â© 2005-2020 - Not Them Limited</th>
+      <th scope="col">© 2005-2021 - Not Them Limited</th>
       <th scope="col">Our Friends</th>
       <th scope="col">Feedback</th>
       <th scope="col">Social Media</th>
@@ -30,7 +50,7 @@
         <a href="https://www.facebook.com/pages/U2t/117634184954578" target="_blank"><img src="../assets/images/followus_facebook.png" width="145" height="24" alt=""/></a></td>
     </tr>
       <tr>
-        <td><br><?php printf(Lang::T("POWERED_BY_TT"), VERSION);?> // <?php $totaltime = array_sum(explode(" ", microtime())) - $GLOBALS['tstart'];?><?php printf(Lang::T("PAGE_GENERATED_IN"), $totaltime);?> // <a href="https://torrenttrader.uk" target="_blank">torrenttrader.uk</a> -|- <a href='<?php echo URLROOT; ?>/rss'><i class="fa fa-rss-square"></i> <?php echo Lang::T("RSS_FEED"); ?></a> - <a href='<?php echo URLROOT; ?>/rss/custom'><?php echo Lang::T("FEED_INFO"); ?></a> // Themed by Propaganda // Coded By: M-jay Â©2021</td>
+        <td><br><?php printf(Lang::T("POWERED_BY_TT"), VERSION);?> // <?php $totaltime = array_sum(explode(" ", microtime())) - $GLOBALS['tstart'];?><?php printf(Lang::T("PAGE_GENERATED_IN"), $totaltime);?> // <a href="https://torrenttrader.uk" target="_blank">torrenttrader.uk</a> -|- <a href='<?php echo URLROOT; ?>/rss'><i class="fa fa-rss-square"></i> <?php echo Lang::T("RSS_FEED"); ?></a> - <a href='<?php echo URLROOT; ?>/rss/custom'><?php echo Lang::T("FEED_INFO"); ?></a> // Themed by Propaganda // Coded By: M-jay ©2021</td>
         <td>&nbsp;</td>
         <td>&nbsp;</td>
         <td>&nbsp;</td>
@@ -38,7 +58,6 @@
     </tbody>
   </table>
 </footer>
-<!-- Footer -->
     <!-- Dont Change -->
     <script src="<?php echo URLROOT; ?>/assets/js/jquery-3.3.1.min.js"></script>
     <script src="<?php echo URLROOT; ?>/assets/js/popper.js"></script>
@@ -53,7 +72,7 @@
             $('#shoutbox').load('shoutbox/chat');
         }
         setInterval( "updateShouts()", 15000 );
-        updateShouts();
+		updateShouts();
     </script>
 <script>
 function myFunction() {
@@ -65,10 +84,30 @@ function myFunction() {
   }
 }
 </script>
-<script src="<?php echo URLROOT; ?>/sceditor/minified/sceditor.min.js"></script>
-		<script src="<?php echo URLROOT; ?>/sceditor/minified/icons/monocons.js"></script>
-		<script src="<?php echo URLROOT; ?>/sceditor/minified/formats/bbcode.js"></script>
-    <script src="<?php echo URLROOT; ?>/assets/js/sceditor.js"></script>
+<script>
+$(document).ready(function(){
+	$("#search-box").keyup(function(){
+		$.ajax({
+		type: "POST",
+		url: "<?php echo URLROOT; ?>/ajax",
+		data:'keyword='+$(this).val(),
+		beforeSend: function(){
+			$("#search-box").css("background","#FFF url(<?php echo URLROOT; ?>/LoaderIcon.gif) no-repeat 165px");
+		},
+		success: function(data){
+			$("#suggesstion-box").show();
+			$("#suggesstion-box").html(data);
+			$("#search-box").css("background","#FFF");
+		}
+		});
+	});
+});
+
+function userCountry(val) {
+$("#search-box").val(val);
+$("#suggesstion-box").hide();
+}
+</script>
   </body>
 </html>
-<?php ob_end_flush(); ?>
+<?php ob_end_flush();?>

@@ -1,21 +1,19 @@
 <?php
-class Admincp extends Controller
+class Admincp
 {
 
     public function __construct()
     {
-        Auth::user();
-        Auth::isStaff();
-        $this->logsModel = $this->model('Logs');
-        $this->valid = new Validation();
+        $this->session = Auth::user(_MODERATOR, 2);
     }
 
     public function index()
     {
         $data = [
-            'title' => 'Staff Panel'
-        ];
-        $this->view('admin/index', $data, 'admin');
+            'title1' => 'Staff Panel',
+            'title' => 'Staff Chat',
+            ];
+        View::render('admin/index', $data, 'admin');
     }
     
 }

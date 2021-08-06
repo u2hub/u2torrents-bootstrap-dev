@@ -1,10 +1,10 @@
 <?php
 class Files
 {
-    private $db;
 
-    public function __construct()
+    public static function insertFiles($id, $name, $size)
     {
-        $this->db = new Database;
+        DB::run("INSERT INTO `files` (`torrent`, `path`, `filesize`) VALUES (?, ?, ?)", [$id, $name, $size]);
     }
+
 }

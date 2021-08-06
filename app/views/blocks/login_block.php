@@ -1,5 +1,5 @@
 <?php
-if ($_SESSION['loggedin'] == true) {
+if ($_SESSION['loggedin']) {
 
     $avatar = htmlspecialchars($_SESSION["avatar"]);
     if (!$avatar) {
@@ -21,7 +21,7 @@ if ($_SESSION['loggedin'] == true) {
         $userratio = '<span class="label label-info pull-right">---</span>';
     }
 
-    Block::begin(Users::coloredname($_SESSION["username"]));
+    Style::block_begin("<a href=". URLROOT ."/profile?id=".$_SESSION['id'].">". Users::coloredname($_SESSION['username'])."</b></a>");
     ?>
 
         <img class="embed-responsive" src="<?php echo $avatar; ?>" alt="Avatar"  />
@@ -36,13 +36,41 @@ if ($_SESSION['loggedin'] == true) {
     </ul>
     <br />
 	<div class="text-center">
-	<a href='<?php echo URLROOT; ?>/profile?id=<?php echo $_SESSION["id"]; ?>'><button class="btn btn-warning"><?php echo Lang::T("ACCOUNT"); ?></button></a>
+	<a href='<?php echo URLROOT; ?>/profile?id=<?php echo $_SESSION["id"]; ?>'><button class="btn ttbtn"><?php echo Lang::T("ACCOUNT"); ?></button></a>
 		<?php if ($_SESSION["control_panel"] == "yes") {?>
-		<a href="<?php echo URLROOT; ?>/admincp" class="btn btn-warning"><?php echo Lang::T("STAFFCP"); ?></a>
+		<a href="<?php echo URLROOT; ?>/admincp" class="btn ttbtn"><?php echo Lang::T("STAFFCP"); ?></a>
 		<?php }?>
 	</div>
 	<br />
         <!-- end content -->
 
-    <?php block::end();
-}
+    <?php Style::block_end();
+}/* else {
+    Style::block_begin('Login');
+    ?>
+<form method="post" action="<?php echo URLROOT ?>/login/submit">
+<input type="hidden" name="csrf_token" value="<?php echo Cookie::csrf_token(); ?>" />
+<table border="0" width="100%" cellspacing="0" cellpadding="0">
+	<tr><td>
+		<table border="0" cellpadding="1" align="center">
+			<tr>
+			<td align="center"><font face="verdana" size="1"><b><?php echo Lang::T("USERNAME"); ?>:</b></font></td>
+			</tr><tr>
+			<td align="center"><input type="text" size="12" name="username" /></td>
+			</tr><tr>
+			<td align="center"><font face="verdana" size="1"><b><?php echo Lang::T("PASSWORD"); ?>:</b></font></td>
+			</tr><tr>
+			<td align="center"><input type="password" size="12" name="password"  /></td>
+			</tr><tr>
+			<td align="center">
+			<button type='submit' class='btn btn-sm ttbtn' value='Login'><?php echo Lang::T("LOGIN"); ?></button>
+			</td>
+		</table>
+		</td>
+		</tr>
+	<tr>
+<td align="center">[<a href="<?php echo URLROOT ?>/signup"><?php echo Lang::T("SIGNUP");?></a>]<br />[<a href="<?php echo URLROOT ?>/recover"><?php echo Lang::T("RECOVER_ACCOUNT");?></a>]</td> </tr>
+	</table>
+    </form> 
+    <?php Style::block_end();
+}*/
