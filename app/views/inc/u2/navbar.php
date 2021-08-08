@@ -93,16 +93,17 @@
     $maxslotdownload = $countslot->rowCount();
     $slots = number_format($_SESSION["maxslots"]) . "/" . number_format($maxslotdownload);
       print("&nbsp;
-        <i class='fa fa-download' style='font-size:18px' alt='Downloaded' title='You have downloaded'></i>&nbsp;&nbsp;<font color='#FFCC66'><b>$userdownloaded</b></font>&nbsp;
-        <i class='fa fa-upload' style='font-size:18px' alt='Uploaded' title='You have uploaded'></i>&nbsp;&nbsp;<font color='#33CCCC'><b>$useruploaded</b></font>&nbsp;
-        <i class='fa fa-retweet' style='font-size:18px' alt='Ratio' title='Your share ratio'></i>&nbsp;&nbsp;(<b><font color='#FFF'>$userratio</font></b>)&nbsp;
-        <i class='fa fa-bold' style='font-size:18px' alt='Bonus' title='Your Bonus points'></i>&nbsp;&nbsp;<a href='". URLROOT ."/bonus' title='Bonus Points'><b><font color=#00cc00>$_SESSION[seedbonus]</font></b></a>&nbsp;
-		<i class='fa fa-money' style='font-size:18px' alt='Donate' title='Your Donations'></i>&nbsp;&nbsp;<a href='". URLROOT ."/donate' title='Donated'><b><font color=gold>$_SESSION[donated]</font></b></a>&nbsp;
-		<i class='fa fa-plus-square-o' style='font-size:18px' alt='Slots' title='Used Slots'></i>&nbsp;&nbsp;(<b><font color=#00cc00>$slots</font></b>)&nbsp;");
+        <i class='fa fa-download' style='color:indigo' style='font-size:18px' alt='Downloaded' title='You have downloaded'></i>&nbsp;&nbsp;<b>$userdownloaded</b>&nbsp;
+        <i class='fa fa-upload' style='color:green' style='font-size:18px' alt='Uploaded' title='You have uploaded'></i>&nbsp;&nbsp;<b>$useruploaded</b>&nbsp;
+        <i class='fa fa-cog fa-spin fa-3x fa-fw' style='font-size:18px' alt='Ratio' title='Your share ratio'></i>&nbsp;&nbsp;(<b>$userratio</b>)&nbsp;
+        <i class='fa fa-smile-o' style='color:orange' style='font-size:16px' alt='Bonus' title='Your Bonus points'></i>&nbsp;&nbsp;<a href='". URLROOT ."/bonus' title='Bonus Points'><b>$_SESSION[seedbonus]</b></a>&nbsp;
+        <i class='fa fa-paypal' style='color:gold' style='font-size:16px' alt='Donate' title='Your Donations'></i>&nbsp;&nbsp;<a href='". URLROOT ."/donate' title='Donated'><b>$_SESSION[donated]</b></a>&nbsp;
+	<i class='fa fa-circle-o' style='color:blue' style='font-size:18px' alt='Slots' title='Used Slots'></i>&nbsp;&nbsp;(<b>$slots</b>)&nbsp;");
+
 //////connectable yes or know////////
     if ($_SESSION["view_torrents"] == "yes") {
         $activeseed = get_row_count("peers", "WHERE userid = '$_SESSION[id]' AND seeder = 'yes'");
-        $activeleech = get_row_count("peers", "WHERE userid = '$_SESSION[id]' AND seeder = 'no'");
+        $activeleech = get_row_count("peers", "WHERE userid = '$_SESSION[id]' AND seeder = 'no'"); 
         $stmt = DB::run("SELECT connectable FROM peers WHERE userid=? LIMIT 1", [$_SESSION['id']]);
         $connect = $stmt->fetchColumn();
         if ($connect == 'yes') {
@@ -110,14 +111,15 @@
         } elseif ($connect == 'no') {
             $connectable = "<b><font color=\"#FFCCFF\">NO</font></b>";
         } else {
-            $connectable = "<b><font color=\"#EB7F27\">Read more</font></b>";
+            $connectable = "<b>Read more</b>";
         }
     }
 
-    print("&nbsp;(&nbsp;<i class='fa fa-arrow-circle-up' style='font-size:18px' alt='Uploading' title='You are uploading'></i>&nbsp; <a class='nav-top' href=\"javascript:popout(0)\"onclick=\"window.open('".URLROOT."/peers/popoutseed?id=" . $_SESSION["id"] . "','Seeding','width=350,height=350,scrollbars=yes')\" title='You are Seeding'><font color='#EB7F27'><b>" . $activeseed . "</b></font></a>&nbsp;");
-    print("&nbsp;<i class='fa fa-arrow-circle-down' style='font-size:18px' alt='Downloading' title='You are downloading'></i>&nbsp;<a class='nav-top' href=\"javascript:popout(0)\"onclick=\"window.open('".URLROOT."/peers/popoutleech?id=" . $_SESSION["id"] . "','Seeding','width=350,height=350,scrollbars=yes')\" title='You are Leeching'><font color='#EB7F27'>&nbsp;<b>" . $activeleech . "</b>&nbsp;</font></a>&nbsp;");
-    print("<i class='fa fa-refresh' style='font-size:18px' alt='Connected' title='Indicates if you are connectable'></i>&nbsp; " . $connectable . ")&nbsp;");
+    print("&nbsp;(&nbsp;<i class='fa fa-arrow-circle-up' style='color:lightgreen' style='font-size:18px' alt='Uploading' title='You are uploading'></i>&nbsp; <a class='nav-top' href=\"javascript:popout(0)\"onclick=\"window.open('".URLROOT."/peers/popoutseed?id=" . $_SESSION["id"] . "','Seeding','width=350,height=350,scrollbars=yes')\" title='You are Seeding'><b>" . $activeseed . "</b></a>&nbsp;");
+    print("&nbsp;<i class='fa fa-arrow-circle-down' style='color:blue' style='font-size:18px' alt='Downloading' title='You are downloading'></i>&nbsp;<a class='nav-top' href=\"javascript:popout(0)\"onclick=\"window.open('".URLROOT."/peers/popoutleech?id=" . $_SESSION["id"] . "','Seeding','width=350,height=350,scrollbars=yes')\" title='You are Leeching'>&nbsp;<b>" . $activeleech . "</b>&nbsp;</a>&nbsp;");
+    print("<i class='fa fa-refresh fa-spin fa-3x fa-fw' style='font-size:18px' alt='Connected' title='Indicates if you are connectable'></i>&nbsp; " . $connectable . ")&nbsp;");
 //////connectable yes or know end of mod////////
+
         if ($_SESSION["control_panel"] == "yes"): ?>
 		<?php
       $arr = DB::run("SELECT * FROM messages WHERE receiver=" . $_SESSION["id"] . " and unread='yes' AND location IN ('in','both')")->fetchAll();
@@ -125,13 +127,13 @@
     if ($unreadmail !== 0) {
       print("<a href='" . URLROOT . "/messages?type=inbox'><b><font color='red'>$unreadmail</font>&nbsp;<i class='fa fa-envelope' style='font-size:18px' alt='New Message' title='You have a New Message!'></i></b></a>");
     } else {
-      print("<a href='" . URLROOT . "/messages/overview'><i class='fa fa-envelope' style='font-size:18px' alt='Messages' title='Your Messages!'></i></a>");
+      print("<a href='" . URLROOT . "/messages/overview'><i class='fa fa-envelope' style='color:navy' style='font-size:18px' alt='Messages' title='Your Messages!'></i></a>");
     }
     ?>
 	
-       &nbsp;<a href="<?php echo URLROOT; ?>/admincp"><b><font color='blue'><?php echo Lang::T("STAFFCP") ?></font></b></a>&nbsp;
+       &nbsp;<a href="<?php echo URLROOT; ?>/admincp"><b><font color='grey'><?php echo Lang::T("STAFFCP") ?></font></b></a>&nbsp;
     <?php endif;?>
-	   &nbsp;<a href="<?php echo URLROOT; ?>/logout"><i class="fa fa-sign-out" style="font-size:18px" alt="Logout" title="Logout...to login again ;-)"></i></a>
+	   &nbsp;<a href="<?php echo URLROOT; ?>/logout"><i class='fa fa-sign-out'  style='color:red' style='font-size:18px' alt='Logout' title='Logout!'></i></a>
     <?php endif;?>
     </ul>
   </div>
