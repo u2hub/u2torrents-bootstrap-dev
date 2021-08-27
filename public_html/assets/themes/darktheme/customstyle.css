@@ -52,13 +52,14 @@ html, body {
     background-image: linear-gradient(to bottom, #a9111f, #ff9900);
     background-repeat: repeat-x;
     border-bottom: 0px;
-    height: 35px;
+    padding-top: 0;
+    height: 25px;
 }
 
 .frame-body {
     border: 10px solid;
     border-image-slice: 1;
-    border-width: 5px;
+    border-width: 2px;
 	background: linear-gradient(90deg, #202e3c 0%, #2e3235 100%) !important;
 	border-image-source: linear-gradient(to bottom, #ff9900, #ffc107) !important;
 }
@@ -69,13 +70,15 @@ html, body {
     background-image: linear-gradient(to bottom, #a9111f, #ff9900);
     background-repeat: repeat-x;
     border-bottom: 0px;
-    height: 35px;
+    padding-top: 0;
+    height: 25px;
 }
 
 .block-body {
+	padding: 0.05rem;
     border: 10px solid;
     border-image-slice: 1;
-    border-width: 5px;
+    border-width: 2px;
 	background: linear-gradient(90deg, #202e3c 0%, #2e3235 100%) !important;
 	border-image-source: linear-gradient(to bottom, #ff9900, #ffc107) !important;
 }
@@ -91,7 +94,8 @@ html, body {
 }
 
 .ttborder {
-	border: 3px solid #ff9900 !IMPORTANT;
+	border: 2px solid #ff9900 !IMPORTANT;
+	padding-bottom: 2px;
 }
 
 .ttblend {
@@ -130,11 +134,13 @@ html, body {
 
 /* -- Bootstrap Table --*/
 .table thead th {
-        color: #fff;
-		background-color: #ff9900;
-		background-image: -webkit-linear-gradient(top, #a9111f, #ff9900);
-		background-image: linear-gradient(to bottom, #a9111f, #ff9900);
-		background-repeat: repeat-x;
+    color: #fff;
+	background-color: #ff9900;
+	background-image: -webkit-linear-gradient(top, #a9111f, #ff9900);
+	background-image: linear-gradient(to bottom, #a9111f, #ff9900);
+	background-repeat: repeat-x;
+	height: 25px !important;
+    padding: .15rem;
 }
 
 a {
@@ -143,4 +149,8 @@ a {
 
 .navbar-nav .nav-link {
     color: #fff;
+}
+
+.list-group-item {
+    background: transparent !important;
 }

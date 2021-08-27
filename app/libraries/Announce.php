@@ -164,7 +164,7 @@ class Announce
 
     public static function UpdateTorrent($leechers, $seeders, $completed, $banned, $torrentid)
     {
-        if ($banned != "yes") {
+        if ($banned == "yes") {
             $visible = 'no';
         } else {
             $visible = 'yes';
@@ -187,7 +187,7 @@ class Announce
             $p .= 'd2:ip' . strlen($d[0]) . ':' . $d[0] . $pid . '4:porti' . $d[1] . 'ee';
         }
         //Add some other paramters in the dictionary and merge with peer list
-        $r = 'd8:intervali' . ANNOUNCEINTERVAL . 'e12:min intervali' . ANNOUNCEINTERVAL . 'e8:completei' . $c . 'e10:incompletei' . $i . 'e5:peersl' . $p . 'ee';
+        $r = 'd8:intervali' . _ANNOUNCEINTERVAL . 'e12:min intervali' . _ANNOUNCEINTERVAL . 'e8:completei' . $c . 'e10:incompletei' . $i . 'e5:peersl' . $p . 'ee';
         return $r;
     }
 

@@ -12,10 +12,10 @@ class Forums
      */
     private function validForumUser($extra = false)
     {
-        if (!FORUMS) {
+        if (!Config::TT()['FORUMS']) {
             Redirect::autolink(URLROOT, Lang::T("FORUM_AVAILABLE"));
         }
-        if (!FORUMS_GUESTREAD && !$_SESSION['loggedin']) {
+        if (!Config::TT()['FORUMS_GUESTREAD'] && !$_SESSION['loggedin']) {
             Redirect::autolink(URLROOT, Lang::T("NO_PERMISSION"));
         }
         if ($_SESSION["forumbanned"] == "yes" || $_SESSION["view_forum"] == "no") {
@@ -83,34 +83,75 @@ class Forums
     }
 
     /**
-     * Search Forum.
+     * Search Results.
      */
     public function result()
     {
         $this->validForumUser();
         $keywords = Input::get("keywords");
-        if ($keywords != "") {
-            $maxresults = 50;
-            $res = Forum::searchForum($keywords);
-            $num = $res->rowCount();
-            if ($num > $maxresults) {
-                $num = $maxresults;
-                $max = "<p>Found more than $maxresults posts; displaying first $num.</p>";
+        $type = $_GET['type'];
+        if (!$keywords == '') {
+            $keys = explode(" ", $keywords);
+            foreach ($keys as $k) {
+                $searcha[] = " forum_topics.subject LIKE '%$k%' ";
+                $searchb[] = " forum_posts.body LIKE '%$k%' ";
+                $searchc[] = " forum_topics.subject LIKE '%$k%' ";
+                $searchd[] = " forum_posts.body LIKE '%$k%' ";
             }
-            if ($num == 0) {
-                Redirect::autolink(URLROOT, Lang::T("NOTHING_FOUND"));
+            $whereasearch = '(' . implode(' OR ', $searcha) . ')';
+            $wherebsearch = '(' . implode(' OR ', $searchb) . ')';
+            $wherecsearch = implode(' OR ', $searchc);
+            $wheredsearch = implode(' OR ', $searchd);
+            $wherea = $whereasearch;
+            $whereb = $wherebsearch;
+            $wherec = $wherecsearch;
+            $whered = $wheredsearch;
+            if ($type == 'deep') {
+                $res2 = DB::run("SELECT COUNT(*), ( $whereb ) as count_words
+                                 FROM forum_posts
+                                 JOIN forum_topics
+                                 ON forum_posts.topicid=forum_topics.id
+                                 WHERE ($whered) ")->fetchColumn();
+                $count = $res2;
+                list($pagertop, $pagerbottom, $limit) = pager(30, $count, URLROOT . "/forums/result?keywords=$keywords&type=deep");
+                $res = DB::run("SELECT *, ( $wherea + $whereb ) as count_words
+                                FROM forum_posts
+                                JOIN forum_topics
+                                ON forum_posts.topicid=forum_topics.id
+                                WHERE ($whered)
+                                ORDER BY count_words DESC")->fetchAll();
             } else {
+                $res2 = DB::run("SELECT COUNT(DISTINCT subject), ( $wherea ) as count_words
+                                 FROM forum_topics
+                                 JOIN forum_posts
+                                 ON forum_posts.topicid=forum_topics.id
+                                 WHERE ($wherec) ")->fetchColumn();
+                $count = $res2;
+                list($pagertop, $pagerbottom, $limit) = pager(30, $count, URLROOT . "/forums/result?keywords=$keywords&");
+
+                $res = DB::run("SELECT DISTINCT subject, forumid, topicid, forum_posts.userid, ( $wherea ) as count_words
+                                FROM forum_topics
+                                JOIN forum_posts
+                                ON forum_posts.topicid=forum_topics.id
+                                WHERE ($wherec)
+                                ORDER BY count_words DESC")->fetchAll();
+            }
+
+            if ($count > 0) {
                 $data = [
                     'res' => $res,
                     'keywords' => $keywords,
                     'title' => 'Forums',
-                    'max' => $max,
-                    'num' => $num,
+                    'count' => $count,
+                    'pagerbottom' => $pagerbottom,
                 ];
                 View::render('forum/result', $data, 'user');
+            } else {
+                Redirect::autolink(URLROOT . '/forums/search', Lang::T("NOTHING_FOUND"));
             }
+
         } else {
-            Redirect::autolink(URLROOT, Lang::T("YOU_DID_NOT_ENTER_ANYTHING"));
+            Redirect::autolink(URLROOT . '/forums/search', Lang::T("YOU_DID_NOT_ENTER_ANYTHING"));
         }
     }
 
@@ -334,7 +375,7 @@ class Forums
         update_topic_last_post($topicid);
         if ($newtopic) {
             $msg_shout = "New Forum Topic: [url=" . URLROOT . "/forums/viewtopic&topicid=" . $topicid . "]" . $subject . "[/url] posted by [url=" . URLROOT . "/profile?id=" . $_SESSION['id'] . "]" . $_SESSION['username'] . "[/url]";
-            DB::run("INSERT INTO shoutbox (userid, date, user, message) VALUES(?,?,?,?)", [0, TimeDate::get_date_time(), $_SESSION["username"], $msg_shout]);
+            DB::run("INSERT INTO shoutbox (userid, date, user, message) VALUES(?,?,?,?)", [0, TimeDate::get_date_time(), 'System', $msg_shout]);
             Redirect::to(URLROOT . "/forums/viewtopic&topicid=$topicid&page=last");
         } else {
             Redirect::to(URLROOT . "/forums/viewtopic&topicid=$topicid&page=last#post$postid");
